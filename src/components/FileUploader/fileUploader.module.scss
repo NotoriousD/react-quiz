@@ -1,0 +1,55 @@
+.root {
+
+}
+
+.file {
+    display: none;
+}
+
+.fileButton {
+    margin-top: 10px;
+}
+
+.label {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.description {
+    margin-bottom: 10px;
+}
+
+.error {
+    margin-top: 5px;
+    color: red;
+    font-size: 14px;
+}
+
+.fileName {
+    margin-top: 5px;
+    font-size: 14px;
+    color: green
+}
+
+.files {
+    margin-top: 5px;
+    font-size: 14px;
+    color: green;
+    padding-left: 0;
+
+    li {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+}
+
+.remove {
+    display: inline-block;
+    transform: rotate(45deg);
+    color: red;
+    font-size: 20px; 
+    cursor: pointer;
+}

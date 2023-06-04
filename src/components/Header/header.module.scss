@@ -1,0 +1,23 @@
+.root {
+    width: 100%;
+    background-color: #007FFF;
+    padding: 15px;
+    color: #fff;
+    position: relative;
+}
+
+.stepLine {
+    position: absolute;
+    width: 100%;
+    height: 4px;
+    left: 0;
+    bottom: -4px;
+    background-color: #cecece;
+    display: flex;
+}
+
+.line {
+    height: 100%;
+    background-color: #50de31;
+    transition: all .2s ease-in-out;
+}

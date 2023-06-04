@@ -1,0 +1,33 @@
+.root {
+    ol, ul {
+        padding-left: 15px;
+        font-size: 14px;
+        font-style: italic;
+    }
+}
+
+.form {
+    display: grid;
+    grid-gap: 20px;
+}
+
+.btn {
+    width: 100%;
+}
+
+.text {
+    font-size: 14px;
+    font-style: italic;
+}
+
+.title {
+    font-size: 1rem;
+    line-height: 1.4375em;
+    letter-spacing: 0.00938em;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+}

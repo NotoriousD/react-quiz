@@ -1,0 +1,16 @@
+.root {
+    margin-bottom: 20px;
+}
+
+.form {
+    display: grid;
+    grid-gap: 20px;
+}
+
+.selectWrapper {
+    width: 100%;
+}
+
+label.selectLabel[data-shink=false] {
+    top: -7px;
+}

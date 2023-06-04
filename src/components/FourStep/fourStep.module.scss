@@ -1,0 +1,50 @@
+.root {
+    ol, ul {
+        padding-left: 15px;
+        font-size: 14px;
+        font-style: italic;
+    }
+}
+
+.form {
+    display: grid;
+    grid-gap: 20px;
+}
+
+.btn {
+    width: 100%;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.text {
+    font-size: 14px;
+    font-style: italic;
+}
+
+.rowLine {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    align-items: center;
+    grid-gap: 10px;
+    margin-bottom: 10px;
+}
+
+.memberName {
+    transition: all .2s ease-in-out;
+    font-size: 15px;
+    color: #000;
+}
+
+.disabled {
+    color: #cecece;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+}

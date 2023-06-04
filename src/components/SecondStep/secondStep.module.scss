@@ -1,0 +1,55 @@
+.root {
+    ol, ul {
+        padding-left: 15px;
+        font-size: 14px;
+        font-style: italic;
+    }
+}
+
+.form {
+    display: grid;
+    grid-gap: 20px;
+}
+
+.btn {
+    width: 100%;
+}
+
+.text {
+    font-size: 14px;
+    font-style: italic;
+}
+
+table, th, td {
+    border: 1px solid #c1c1c1;
+}
+
+.errors {
+    margin-bottom: 10px;
+}
+
+.table {
+    margin-bottom: 15px;
+    border-collapse: collapse;
+    width: 100%;
+
+    th, td {
+        padding: 5px;
+        font-size: 12px;
+    }
+
+    span {
+        color: red;
+        font-size: 16px;
+        font-weight: 800;
+        transform: rotate(45deg);
+        display: inline-block;
+        cursor: pointer;
+    }
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+}
