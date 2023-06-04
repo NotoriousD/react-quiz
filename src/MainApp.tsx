@@ -35,6 +35,7 @@ export const MainApp = () => {
       ...getValues(),
       ...data,
     };
+    console.log(body);
   };
 
   const renderFields = (currentStep: number) => {

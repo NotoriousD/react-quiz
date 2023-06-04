@@ -1,11 +1,10 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 import { MainApp } from './MainApp';
 
 function App() {
-  const navigate = useNavigate();
   const router = createBrowserRouter([
     {
       path: '/',
