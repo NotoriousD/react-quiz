@@ -28,7 +28,6 @@ export const MainApp = () => {
       setValue(key as keyof FormFields, value);
     });
     goNextStep();
-    console.log(getValues());
   };
 
   const handleSubmitForm = (data: Partial<FormFields>) => {
@@ -36,8 +35,6 @@ export const MainApp = () => {
       ...getValues(),
       ...data,
     };
-
-    console.log(body);
   };
 
   const renderFields = (currentStep: number) => {
