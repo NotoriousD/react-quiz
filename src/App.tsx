@@ -1,28 +1,40 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { Navigate } from 'react-router-dom';
 
-import { MainApp } from './MainApp';
+import { Loader } from 'components/Loader';
+import { PrivateRoute } from 'components/PrivateRoute';
+
+const QuizPage = lazy(() =>
+  import('pages/QuizPage').then((module) => ({ default: module.QuizPage }))
+);
+
+const AuthorizationPage = lazy(() =>
+  import('pages/AuthorizationPage').then((module) => ({
+    default: module.AuthorizationPage,
+  }))
+);
 
 function App() {
   const router = createBrowserRouter([
     {
       path: '/',
-      element: (
-        <>
-          <Navigate to={`/form/1`} />
-        </>
-      ),
+      element: <AuthorizationPage />,
     },
     {
       path: '/form/:step',
-      element: <MainApp />,
+      element: (
+        <PrivateRoute>
+          <QuizPage />
+        </PrivateRoute>
+      ),
     },
   ]);
 
   return (
     <div className="App">
-      <RouterProvider router={router} />
+      <Suspense fallback={<Loader />}>
+        <RouterProvider router={router} />
+      </Suspense>
     </div>
   );
 }

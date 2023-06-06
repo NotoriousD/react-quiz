@@ -16,7 +16,7 @@ import 'styles/main.scss';
 import css from 'styles/styles.module.scss';
 import fadeTransition from 'styles/fade.module.scss';
 
-export const MainApp = () => {
+export const QuizPage: React.FC = () => {
   const { getValues, setValue } = useForm<FormFields>({
     defaultValues: initialValues,
   });
