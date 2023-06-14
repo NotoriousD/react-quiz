@@ -2,7 +2,8 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { CSSTransition } from 'react-transition-group';
 
-import { FormFields, initialValues } from 'types';
+import { FormFieldValues, initialValues } from 'types';
+import { useAppDispatch, useAppSelector } from 'store';
 import { useStepper } from 'hooks/useStepper';
 
 import { SecondStep } from 'components/SecondStep';
@@ -15,27 +16,34 @@ import { Header } from 'components/Header';
 import 'styles/main.scss';
 import css from 'styles/styles.module.scss';
 import fadeTransition from 'styles/fade.module.scss';
+import { submitQuestionnarie } from 'store/auth/thunk';
+import { selectAuthData } from 'store/auth/selectors';
 
 export const QuizPage: React.FC = () => {
-  const { getValues, setValue } = useForm<FormFields>({
+  const dispatch = useAppDispatch();
+  const { requestId } = useAppSelector(selectAuthData);
+  const { getValues, setValue } = useForm<FormFieldValues>({
     defaultValues: initialValues,
   });
 
   const { step: currentStep, goNextStep, goPrevStep } = useStepper();
 
-  const handleChangeStep = (data: Partial<FormFields>) => {
+  const handleChangeStep = (data: Partial<FormFieldValues>) => {
     Object.entries(data).forEach(([key, value]) => {
-      setValue(key as keyof FormFields, value);
+      setValue(key as keyof FormFieldValues, value);
     });
     goNextStep();
   };
 
-  const handleSubmitForm = (data: Partial<FormFields>) => {
+  const handleSubmitForm = async (data: FormFieldValues) => {
     const body = {
-      ...getValues(),
+      ...getValues().data,
       ...data,
     };
-    console.log(body);
+    if (requestId) {
+      
+      dispatch(submitQuestionnarie(body));
+    }
   };
 
   const renderFields = (currentStep: number) => {

@@ -1,25 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { Provider } from 'react-redux';
 
-import { AuthContextProvider } from 'context/AuthContext';
+import { store } from 'store';
+
 import { WebSocketProvider } from 'context/WebSocketContext';
 
 import App from './App';
-
-const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AuthContextProvider>
-        <WebSocketProvider>
-          <App />
-        </WebSocketProvider>
-      </AuthContextProvider>
-    </QueryClientProvider>
+    <Provider store={store}>
+      <WebSocketProvider>
+        <App />
+      </WebSocketProvider>
+    </Provider>
   </React.StrictMode>
 );

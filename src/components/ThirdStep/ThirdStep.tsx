@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import cx from 'classnames';
 
-import { FormFields, getEnumOptions } from 'types';
+import { FormFieldValues, FormFieldsDocuments, getEnumOptions } from 'types';
 import {
   Capital,
   Damage,
@@ -16,105 +16,115 @@ import {
   QuestionSupply,
 } from 'types/capital';
 
-import { ChangeEventType, FileUploader } from 'components/FileUploader';
+import { FileUploader } from 'components/FileUploader';
 import { ErrorMessage } from 'components/ErrorMessage';
 import { RadioInput } from 'components/RadioGroup';
 
 import css from './thirdStep.module.scss';
 
 interface Props {
-  onSubmitStep: (data: Partial<FormFields>) => void;
+  onSubmitStep: (data: Partial<FormFieldValues>) => void;
   onBack: () => void;
-  values: FormFields;
+  values: FormFieldValues;
 }
 
 type TextFieldTypes =
-  | 'typeEstate.key.value'
-  | 'estateDamage.value'
-  | 'useHelps.value'
-  | 'readyToSupply.value';
+  | 'data.typeEstate.value'
+  | 'data.estateDamage.value'
+  | 'data.useHelps.value'
+  | 'data.readyToSupply.value';
 
 const schema = yup.object().shape({
-  hasEstate: yup.object().shape({
-    key: yup.string().required("Поле є обов'язковим"),
-    document: yup.array().when('key', ([key]) => {
-      return key === Question.Yes
-        ? yup.array().min(1, "Поле є обов'язковим")
-        : yup.array();
+  data: yup.object().shape({
+    hasEstate: yup.object().shape({
+      key: yup.string().required("Поле є обов'язковим"),
+    }),
+    estateCity: yup.string().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.string().required("Поле є обов'язковим")
+        : yup.string();
+    }),
+    estateRegion: yup.string().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.string().required("Поле є обов'язковим")
+        : yup.string();
+    }),
+    estateStreet: yup.string().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.string().required("Поле є обов'язковим")
+        : yup.string();
+    }),
+    estateTerritory: yup.object().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.object().shape({
+            key: yup.string().required("Поле є обов'язковим"),
+          })
+        : yup.object().shape({
+            key: yup.string(),
+          });
+    }),
+    typeEstate: yup.object().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.object().shape({
+            key: yup.string().required("Поле є обов'язковим"),
+            value: yup.string().when('key', ([key]) => {
+              return key === Capital.Other
+                ? yup.string().required("Поле є обов'язковим")
+                : yup.string();
+            }),
+          })
+        : yup.object();
+    }),
+    estateDamage: yup.object().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.object().shape({
+            key: yup.string().required("Поле є обов'язковим"),
+            value: yup.string().when('key', ([key]) => {
+              return key === Damage.Sold || key === Damage.Restored
+                ? yup.string().required("Поле є обов'язковим")
+                : yup.string();
+            }),
+          })
+        : yup.object();
+    }),
+    useHelps: yup.object().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.object().shape({
+            key: yup.string().required("Поле є обов'язковим"),
+            value: yup.string().when('key', ([key]) => {
+              return key === QuestionHelps.Yes
+                ? yup.string().required("Поле є обов'язковим")
+                : yup.string();
+            }),
+          })
+        : yup.object();
+    }),
+    readyToSupply: yup.object().when('hasEstate', ([hasEstate]) => {
+      return hasEstate.key === Question.Yes
+        ? yup.object().shape({
+            key: yup.string().required("Поле є обов'язковим"),
+            value: yup.string().when('key', ([key]) => {
+              return key === QuestionSupply.No
+                ? yup.string().required("Поле є обов'язковим")
+                : yup.string();
+            }),
+          })
+        : yup.object();
     }),
   }),
-  estateCity: yup.string().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.string().required("Поле є обов'язковим")
-      : yup.string();
-  }),
-  estateRegion: yup.string().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.string().required("Поле є обов'язковим")
-      : yup.string();
-  }),
-  estateStreet: yup.string().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.string().required("Поле є обов'язковим")
-      : yup.string();
-  }),
-  estateTerritory: yup.string().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.string().required("Поле є обов'язковим")
-      : yup.string();
-  }),
-  typeEstate: yup.object().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.object().shape({
-          key: yup.string().required("Поле є обов'язковим"),
-          value: yup.string().when('key', ([key]) => {
-            return key === Capital.Other
-              ? yup.string().required("Поле є обов'язковим")
-              : yup.string();
-          }),
-        })
-      : yup.object();
-  }),
-  estateDamage: yup.object().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.object().shape({
-          key: yup.string().required("Поле є обов'язковим"),
-          value: yup.string().when('key', ([key]) => {
-            return key === Damage.Sold || key === Damage.Restored
-              ? yup.string().required("Поле є обов'язковим")
-              : yup.string();
-          }),
-          document: yup.array().when('key', ([key]) => {
-            return key !== Damage.NoDamage
-              ? yup.array().min(1, "Поле є обов'язковим")
-              : yup.array();
-          }),
-        })
-      : yup.object();
-  }),
-  useHelps: yup.object().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.object().shape({
-          key: yup.string().required("Поле є обов'язковим"),
-          value: yup.string().when('key', ([key]) => {
-            return key === QuestionHelps.Yes
-              ? yup.string().required("Поле є обов'язковим")
-              : yup.string();
-          }),
-        })
-      : yup.object();
-  }),
-  readyToSupply: yup.object().when('hasEstate', ([hasEstate]) => {
-    return hasEstate.key === Question.Yes
-      ? yup.object().shape({
-          key: yup.string().required("Поле є обов'язковим"),
-          value: yup.string().when('key', ([key]) => {
-            return key === QuestionSupply.No
-              ? yup.string().required("Поле є обов'язковим")
-              : yup.string();
-          }),
-        })
-      : yup.object();
+  documents: yup.object().when('data', ([data]) => {
+    return yup.object().shape({
+      hasEstate: yup.array().when(() => {
+        return data.hasEstate.key === Question.Yes
+          ? yup.array().min(1, "Поле є обов'язковим")
+          : yup.array();
+      }),
+      estateDamage: yup.array().when(() => {
+        return data.estateDamage.key !== Damage.NoDamage
+          ? yup.array().min(1, "Поле є обов'язковим")
+          : yup.array();
+      }),
+    });
   }),
 });
 
@@ -128,35 +138,29 @@ export const ThirdStep: React.FC<Props> = ({
     control,
     formState: { errors },
     setValue,
-    getValues,
     watch,
-  } = useForm<Partial<FormFields>>({
+  } = useForm<FormFieldValues>({
     resolver: yupResolver(schema),
     defaultValues: values,
   });
 
-  const watchHasEstate = watch('hasEstate');
-  const watchEstateDamage = watch('estateDamage');
+  const watchHasEstate = watch('data.hasEstate');
+  const watchEstateDamage = watch('data.estateDamage');
 
-  const handleChangeFile = (name: keyof FormFields, files: Blob[]) => {
-    setValue(name, files);
+  const handleChangeFile = (
+    name: keyof FormFieldsDocuments,
+    files: string[]
+  ) => {
+    setValue(`documents.${name}`, files);
   };
 
   const onChangeFile = (
-    name: keyof FormFields,
-    files: Blob | Blob[],
-    event: ChangeEventType
+    name: keyof FormFieldsDocuments,
+    files: string | string[]
   ) => {
-    let data = getValues()[name] || [];
-    if (event === ChangeEventType.Add) {
-      //@ts-ignore
-      data.push(files);
-    }
-    if (event === ChangeEventType.Remove) {
-      data = [...(Array.isArray(files) ? [...files] : [files])];
-    }
+    const key = name.replace('documents.', '');
     //@ts-ignore
-    handleChangeFile(name, data);
+    handleChangeFile(key, files);
   };
 
   const handleChangeTextField = (
@@ -165,29 +169,34 @@ export const ThirdStep: React.FC<Props> = ({
     setValue(event.target.name as TextFieldTypes, event.target.value);
   };
 
-  console.log(errors);
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }, []);
 
   return (
     <div className={css.root}>
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
         <div className={css.row}>
           <Controller
-            name="hasEstate.key"
+            name="data.hasEstate.key"
             control={control}
-            defaultValue={values?.hasEstate.key}
+            defaultValue={values?.data.hasEstate.key}
             render={({ field }) => (
               <RadioInput
                 {...field}
                 title="Наявність нерухомого майна у власності заявника або одного з членів домогосподарства"
                 options={getEnumOptions(Question)}
-                error={errors?.hasEstate}
+                error={errors?.data?.hasEstate}
               />
             )}
           />
         </div>
         <div className={css.row}>
           <Controller
-            name="hasEstate.document"
+            name="documents.hasEstate"
             control={control}
             render={({ field }) => (
               <FileUploader
@@ -196,6 +205,7 @@ export const ThirdStep: React.FC<Props> = ({
                 disabled={
                   watchHasEstate?.key === Question.No || !watchHasEstate?.key
                 }
+                inputName="hasEstate"
               >
                 <p className={css.text}>
                   Витяг з державного реєстру речових прав/свідоцтво про право
@@ -206,9 +216,9 @@ export const ThirdStep: React.FC<Props> = ({
               </FileUploader>
             )}
           />
-          {errors?.hasEstate?.document && (
+          {errors?.documents?.hasEstate && (
             <ErrorMessage
-              message={String(errors?.hasEstate.document.message)}
+              message={String(errors?.documents?.hasEstate.message)}
             />
           )}
         </div>
@@ -217,19 +227,19 @@ export const ThirdStep: React.FC<Props> = ({
             <hr />
             <div className={css.row}>
               <Controller
-                name="typeEstate.key"
+                name="data.typeEstate.key"
                 control={control}
-                defaultValue={values?.typeEstate.key}
+                defaultValue={values?.data.typeEstate.key}
                 render={({ field }) => (
                   <RadioInput
                     {...field}
                     title="Тип нерухомого майна"
                     options={getEnumOptions(Capital)}
                     withOther={[Capital.Other]}
-                    inputName="typeEstate.value"
-                    fieldValue={values?.typeEstate?.value}
+                    inputName="data.typeEstate.value"
+                    fieldValue={values?.data.typeEstate?.value}
                     onChangeTextField={handleChangeTextField}
-                    error={errors?.typeEstate}
+                    error={errors?.data?.typeEstate}
                   />
                 )}
               />
@@ -238,9 +248,9 @@ export const ThirdStep: React.FC<Props> = ({
             <div className={css.title}>Місцезнаходження нерухомого майна</div>
             <div className={css.row}>
               <Controller
-                name="estateRegion"
+                name="data.estateRegion"
                 control={control}
-                defaultValue={values?.estateRegion}
+                defaultValue={values.data.estateRegion}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -250,15 +260,17 @@ export const ThirdStep: React.FC<Props> = ({
                   />
                 )}
               />
-              {errors?.estateRegion && (
-                <ErrorMessage message={String(errors?.estateRegion.message)} />
+              {errors?.data?.estateRegion && (
+                <ErrorMessage
+                  message={String(errors?.data?.estateRegion.message)}
+                />
               )}
             </div>
             <div className={css.row}>
               <Controller
-                name="estateCity"
+                name="data.estateCity"
                 control={control}
-                defaultValue={values?.estateCity}
+                defaultValue={values.data.estateCity}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -268,15 +280,17 @@ export const ThirdStep: React.FC<Props> = ({
                   />
                 )}
               />
-              {errors?.estateCity && (
-                <ErrorMessage message={String(errors?.estateCity.message)} />
+              {errors?.data?.estateCity && (
+                <ErrorMessage
+                  message={String(errors?.data?.estateCity.message)}
+                />
               )}
             </div>
             <div className={css.row}>
               <Controller
-                name="estateStreet"
+                name="data.estateStreet"
                 control={control}
-                defaultValue={values?.estateStreet}
+                defaultValue={values.data.estateStreet}
                 render={({ field }) => (
                   <TextField
                     {...field}
@@ -286,22 +300,24 @@ export const ThirdStep: React.FC<Props> = ({
                   />
                 )}
               />
-              {errors?.estateStreet && (
-                <ErrorMessage message={String(errors?.estateStreet.message)} />
+              {errors?.data?.estateStreet && (
+                <ErrorMessage
+                  message={String(errors?.data?.estateStreet.message)}
+                />
               )}
             </div>
             <hr />
             <div className={css.row}>
               <Controller
-                name="estateTerritory"
+                name="data.estateTerritory.key"
                 control={control}
-                defaultValue={values?.estateTerritory}
+                defaultValue={values?.data.estateTerritory.key}
                 render={({ field }) => (
                   <RadioInput
                     {...field}
                     title="Нерухомість розташована на території"
                     options={getEnumOptions(EstateTerritory)}
-                    error={errors?.estateTerritory}
+                    error={errors?.data?.estateTerritory}
                   />
                 )}
               />
@@ -309,18 +325,18 @@ export const ThirdStep: React.FC<Props> = ({
             <hr />
             <div className={css.row}>
               <Controller
-                name="estateDamage.key"
+                name="data.estateDamage.key"
                 control={control}
-                defaultValue={values?.estateDamage.key}
+                defaultValue={values?.data.estateDamage.key}
                 render={({ field }) => (
                   <RadioInput
                     {...field}
-                    title="Нерухомість розташована на території"
+                    title="Поточний статус вашого нерухомого майна"
                     options={getEnumOptions(Damage)}
                     withOther={[Damage.Sold, Damage.Restored]}
-                    error={errors?.estateDamage}
-                    inputName="estateDamage.value"
-                    fieldValue={values?.estateDamage?.value}
+                    error={errors?.data?.estateDamage}
+                    inputName="data.estateDamage.value"
+                    fieldValue={values?.data.estateDamage?.value}
                     onChangeTextField={handleChangeTextField}
                   />
                 )}
@@ -328,13 +344,14 @@ export const ThirdStep: React.FC<Props> = ({
             </div>
             <div className={css.row}>
               <Controller
-                name="estateDamage.document"
+                name="documents.estateDamage"
                 control={control}
                 render={({ field }) => (
                   <FileUploader
                     {...field}
                     onChange={onChangeFile}
                     isMultiply
+                    inputName="estateDamage"
                     disabled={
                       watchEstateDamage?.key === Damage.NoDamage ||
                       !watchEstateDamage?.key
@@ -357,27 +374,27 @@ export const ThirdStep: React.FC<Props> = ({
                   </FileUploader>
                 )}
               />
-              {errors?.estateDamage?.document && (
+              {errors?.documents?.estateDamage && (
                 <ErrorMessage
-                  message={String(errors?.estateDamage.document.message)}
+                  message={String(errors?.documents?.estateDamage.message)}
                 />
               )}
             </div>
             <hr />
             <div className={css.row}>
               <Controller
-                name="useHelps.key"
+                name="data.useHelps.key"
                 control={control}
-                defaultValue={values?.useHelps.key}
+                defaultValue={values?.data.useHelps.key}
                 render={({ field }) => (
                   <RadioInput
                     {...field}
                     title="Чи використовували ви до цього часу будь-яку допомогу для вирішення житлових потреб біженців або внутрішньо переміщених осіб на території України?"
                     options={getEnumOptions(QuestionHelps)}
                     withOther={[QuestionHelps.Yes]}
-                    error={errors?.useHelps}
-                    inputName="useHelps.value"
-                    fieldValue={values?.useHelps?.value}
+                    error={errors?.data?.useHelps}
+                    inputName="data.useHelps.value"
+                    fieldValue={values?.data.useHelps?.value}
                     onChangeTextField={handleChangeTextField}
                   />
                 )}
@@ -386,18 +403,18 @@ export const ThirdStep: React.FC<Props> = ({
             <hr />
             <div className={css.row}>
               <Controller
-                name="readyToSupply.key"
+                name="data.readyToSupply.key"
                 control={control}
-                defaultValue={values?.readyToSupply.key}
+                defaultValue={values?.data.readyToSupply.key}
                 render={({ field }) => (
                   <RadioInput
                     {...field}
                     title="Чи готові ви за власні кошти оплачувати послуги з постачання електроенергії та утримання прибудинкової території?"
                     options={getEnumOptions(QuestionSupply)}
                     withOther={[QuestionSupply.No]}
-                    error={errors?.readyToSupply}
-                    inputName="readyToSupply.value"
-                    fieldValue={values?.readyToSupply?.value}
+                    error={errors?.data?.readyToSupply}
+                    inputName="data.readyToSupply.value"
+                    fieldValue={values?.data.readyToSupply?.value}
                     onChangeTextField={handleChangeTextField}
                   />
                 )}

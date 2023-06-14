@@ -6,24 +6,26 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import cx from 'classnames';
 
-import { FormFields } from 'types';
+import { FormFieldValues } from 'types';
 
 import { ErrorMessage } from 'components/ErrorMessage';
 
 import css from './fiveStep.module.scss';
 
 interface Props {
-  onSubmitStep: (data: Partial<FormFields>) => void;
+  onSubmitStep: (data: FormFieldValues) => void;
   onBack: () => void;
-  values: FormFields;
+  values: FormFieldValues;
 }
 
 const schema = yup.object().shape({
-  additionalMessage: yup
-    .string()
-    .test('len', 'Максимум 250 слів', (val) =>
-      val ? val?.split(' ').length <= 250 : true
-    ),
+  data: yup.object().shape({
+    additionalMessage: yup
+      .string()
+      .test('len', 'Максимум 250 слів', (val) =>
+        val ? val?.split(' ').length <= 250 : true
+      ),
+  }),
 });
 
 export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
@@ -31,7 +33,7 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<Partial<FormFields>>({
+  } = useForm<FormFieldValues>({
     resolver: yupResolver(schema),
     defaultValues: values,
   });
@@ -46,9 +48,9 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
         </div>
         <div className={css.row}>
           <Controller
-            name="additionalMessage"
+            name="data.additionalMessage"
             control={control}
-            defaultValue={values?.additionalMessage}
+            defaultValue={values?.data.additionalMessage}
             render={({ field }) => (
               <TextareaAutosize
                 {...field}
@@ -58,8 +60,10 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
               />
             )}
           />
-          {errors?.additionalMessage && (
-            <ErrorMessage message={String(errors?.additionalMessage.message)} />
+          {errors?.data?.additionalMessage && (
+            <ErrorMessage
+              message={String(errors?.data?.additionalMessage.message)}
+            />
           )}
         </div>
         <div className={cx(css.row, css.actions)}>

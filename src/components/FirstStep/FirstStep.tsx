@@ -5,27 +5,31 @@ import Button from '@mui/material/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
-import { FormFields } from 'types';
+import { FormFieldValues, FormFieldsDocuments } from 'types';
 
 import { ErrorMessage } from 'components/ErrorMessage';
-import { ChangeEventType, FileUploader } from 'components/FileUploader';
+import { FileUploader } from 'components/FileUploader';
 
 import css from './firstStep.module.scss';
 
 interface Props {
-  onSubmitStep: (data: Partial<FormFields>) => void;
-  values: FormFields;
+  onSubmitStep: (data: FormFieldValues) => void;
+  values: FormFieldValues;
 }
 
 const schema = yup.object().shape({
-  pib: yup.array().min(1, "Поле є обов'язковим"),
-  rnokpp: yup.array().min(1, "Поле є обов'язковим"),
-  addressRegion: yup.string().required("Поле є обов'язковим"),
-  addressSettlement: yup.string().required("Поле є обов'язковим"),
-  addressStreet: yup.string().required("Поле є обов'язковим"),
-  addressBuilding: yup.string().required("Поле є обов'язковим"),
-  addressFlat: yup.string().required("Поле є обов'язковим"),
-  avgIncome: yup.array().min(1, "Поле є обов'язковим"),
+  data: yup.object().shape({
+    addressRegion: yup.string().required("Поле є обов'язковим"),
+    addressSettlement: yup.string().required("Поле є обов'язковим"),
+    addressStreet: yup.string().required("Поле є обов'язковим"),
+    addressBuilding: yup.string().required("Поле є обов'язковим"),
+    addressFlat: yup.string().required("Поле є обов'язковим"),
+  }),
+  documents: yup.object().shape({
+    pib: yup.array().min(1, "Поле є обов'язковим"),
+    rnokpp: yup.array().min(1, "Поле є обов'язковим"),
+    avgIncome: yup.array().min(1, "Поле є обов'язковим"),
+  }),
 });
 
 export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
@@ -35,38 +39,35 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
     formState: { errors },
     setValue,
     getValues,
-  } = useForm<Partial<FormFields>>({
+  } = useForm<FormFieldValues>({
     resolver: yupResolver(schema),
     defaultValues: values,
   });
 
-  const handleChangeFile = (name: keyof FormFields, files: Blob[]) => {
-    setValue(name, files);
+  const handleChangeFile = (
+    name: keyof FormFieldsDocuments,
+    files: string[]
+  ) => {
+    setValue(`documents.${name}`, files);
   };
 
   const onChangeFile = (
-    name: keyof FormFields,
-    files: Blob | Blob[],
-    event: ChangeEventType
+    name: keyof FormFieldsDocuments,
+    files: string | string[]
   ) => {
-    let data = getValues()[name] || [];
-    if (event === ChangeEventType.Add) {
-      //@ts-ignore
-      data.push(files);
-    }
-    if (event === ChangeEventType.Remove) {
-      data = [...(Array.isArray(files) ? [...files] : [files])];
-    }
+    const key = name.replace('documents.', '');
     //@ts-ignore
-    handleChangeFile(name, data);
+    handleChangeFile(key, files);
   };
+
+  console.log(getValues());
 
   return (
     <div className={css.root}>
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
         <div className={css.row}>
           <Controller
-            name="pib"
+            name="documents.pib"
             control={control}
             render={({ field }) => (
               <FileUploader
@@ -75,6 +76,7 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
                   "Інформація про основного заявника Прізвище, ім'я, по батькові, Дата народження, Повних років, Паспорт/ID картка*:"
                 }
                 onChange={onChangeFile}
+                inputName="pib"
               >
                 <ol>
                   <li>скан копію паспорту/id картку/фото паспорту</li>
@@ -82,32 +84,37 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
               </FileUploader>
             )}
           />
-          {errors?.pib && (
-            <ErrorMessage message={String(errors?.pib.message)} />
+          {errors?.documents?.pib && (
+            <ErrorMessage message={String(errors?.documents?.pib.message)} />
           )}
         </div>
         <hr />
         <div className={css.row}>
           <Controller
-            name="rnokpp"
+            name="documents.rnokpp"
             control={control}
             render={({ field }) => (
-              <FileUploader {...field} label={'РНОКПП'} onChange={onChangeFile}>
+              <FileUploader
+                {...field}
+                label={'РНОКПП'}
+                onChange={onChangeFile}
+                inputName="rnokpp"
+              >
                 <p className={css.text}>скан/фото ІНН коду</p>
               </FileUploader>
             )}
           />
-          {errors?.rnokpp && (
-            <ErrorMessage message={String(errors?.rnokpp.message)} />
+          {errors?.documents?.rnokpp && (
+            <ErrorMessage message={String(errors?.documents?.rnokpp.message)} />
           )}
         </div>
         <hr />
         <div className={css.title}>Актуальна адреса проживання</div>
         <div className={css.row}>
           <Controller
-            name="addressRegion"
+            name="data.addressRegion"
             control={control}
-            defaultValue={values?.addressRegion}
+            defaultValue={values?.data.addressRegion}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -117,15 +124,17 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
               />
             )}
           />
-          {errors?.addressRegion && (
-            <ErrorMessage message={String(errors?.addressRegion.message)} />
+          {errors?.data?.addressRegion && (
+            <ErrorMessage
+              message={String(errors?.data?.addressRegion.message)}
+            />
           )}
         </div>
         <div className={css.row}>
           <Controller
-            name="addressSettlement"
+            name="data.addressSettlement"
             control={control}
-            defaultValue={values?.addressSettlement}
+            defaultValue={values?.data.addressSettlement}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -135,15 +144,17 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
               />
             )}
           />
-          {errors?.addressSettlement && (
-            <ErrorMessage message={String(errors?.addressSettlement.message)} />
+          {errors?.data?.addressSettlement && (
+            <ErrorMessage
+              message={String(errors?.data?.addressSettlement.message)}
+            />
           )}
         </div>
         <div className={css.row}>
           <Controller
-            name="addressStreet"
+            name="data.addressStreet"
             control={control}
-            defaultValue={values?.addressStreet}
+            defaultValue={values?.data.addressStreet}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -153,15 +164,17 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
               />
             )}
           />
-          {errors?.addressStreet && (
-            <ErrorMessage message={String(errors?.addressStreet.message)} />
+          {errors?.data?.addressStreet && (
+            <ErrorMessage
+              message={String(errors?.data?.addressStreet.message)}
+            />
           )}
         </div>
         <div className={css.row}>
           <Controller
-            name="addressBuilding"
+            name="data.addressBuilding"
             control={control}
-            defaultValue={values?.addressBuilding}
+            defaultValue={values?.data.addressBuilding}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -171,15 +184,17 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
               />
             )}
           />
-          {errors?.addressBuilding && (
-            <ErrorMessage message={String(errors?.addressBuilding.message)} />
+          {errors?.data?.addressBuilding && (
+            <ErrorMessage
+              message={String(errors?.data?.addressBuilding.message)}
+            />
           )}
         </div>
         <div className={css.row}>
           <Controller
-            name="addressFlat"
+            name="data.addressFlat"
             control={control}
-            defaultValue={values?.addressFlat}
+            defaultValue={values?.data.addressFlat}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -189,20 +204,21 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
               />
             )}
           />
-          {errors?.addressFlat && (
-            <ErrorMessage message={String(errors?.addressFlat.message)} />
+          {errors?.data?.addressFlat && (
+            <ErrorMessage message={String(errors?.data?.addressFlat.message)} />
           )}
         </div>
         <hr />
         <div className={css.row}>
           <Controller
-            name="avgIncome"
+            name="documents.avgIncome"
             control={control}
             render={({ field }) => (
               <FileUploader
                 {...field}
                 label={'Сума середнього місячного доходу заявника (в гривнях)'}
                 onChange={onChangeFile}
+                inputName="avgIncome"
               >
                 <ul>
                   Довідка про доходи:
@@ -225,8 +241,10 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
               </FileUploader>
             )}
           />
-          {errors?.avgIncome && (
-            <ErrorMessage message={String(errors?.avgIncome.message)} />
+          {errors?.documents?.avgIncome && (
+            <ErrorMessage
+              message={String(errors?.documents?.avgIncome.message)}
+            />
           )}
         </div>
         <div className={css.row}>

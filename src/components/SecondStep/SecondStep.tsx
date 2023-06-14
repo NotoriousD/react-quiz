@@ -5,29 +5,32 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import cx from 'classnames';
 
-import { Family, FormFields } from 'types';
+import { Family, FormFieldValues, FormFieldsDocuments } from 'types';
 
 import { ErrorMessage } from 'components/ErrorMessage';
-import { ChangeEventType, FileUploader } from 'components/FileUploader';
+import { FileUploader } from 'components/FileUploader';
 
 import { FormGenerator } from './modules/FormGenerator';
 
 import css from './secondStep.module.scss';
 
 interface Props {
-  onSubmitStep: (data: Partial<FormFields>) => void;
+  onSubmitStep: (data: Partial<FormFieldValues>) => void;
   onBack: () => void;
-  values: FormFields;
+  values: FormFieldValues;
 }
 
 const schema = yup.object().shape({
-  family: yup.object().shape({
-    data: yup
+  data: yup.object().shape({
+    family: yup
       .array()
       .min(
         1,
         'Необхідно додати інформацію про членів домогосподарства, що будуть проживати разом із заявником'
       ),
+  }),
+  documents: yup.object().shape({
+    family: yup.array(),
   }),
 });
 
@@ -36,59 +39,50 @@ export const SecondStep: React.FC<Props> = ({
   onBack,
   values,
 }) => {
-  const [members, setMembers] = useState<Family[]>(values?.family.data || []);
+  const [members, setMembers] = useState<Family[]>(values?.data.family || []);
   const {
     handleSubmit,
     control,
     formState: { errors },
     setValue,
     getValues,
-  } = useForm<Partial<FormFields>>({
+  } = useForm<FormFieldValues>({
     resolver: yupResolver(schema),
     defaultValues: values,
   });
 
-  const handleChangeFile = (files: Blob[]) => {
-    setValue('family.documents', files);
+  const handleChangeFile = (files: string[]) => {
+    setValue('documents.family', files);
   };
 
   const onChangeFile = (
-    name: keyof FormFields,
-    files: Blob | Blob[],
-    event: ChangeEventType
+    name: keyof FormFieldsDocuments,
+    files: string | string[]
   ) => {
-    let data = getValues()?.family?.documents || [];
-    if (event === ChangeEventType.Add) {
-      //@ts-ignore
-      data.push(files);
-    }
-    if (event === ChangeEventType.Remove) {
-      data = [...(Array.isArray(files) ? [...files] : [files])];
-    }
     //@ts-ignore
-    handleChangeFile(data);
+    handleChangeFile(files);
   };
 
   const handleAddMember = (data: Family) => {
-    const members = getValues()?.family?.data;
+    const members = getValues()?.data?.family;
     if (members) {
-      setValue('family.data', [...members, data]);
+      setValue('data.family', [...members, data]);
       setMembers([...members, data]);
     }
   };
 
   const removeMember = (idx: number) => {
-    const members = getValues()?.family?.data;
+    const members = getValues()?.data?.family;
 
     if (members) {
       const newMemebers = members.filter((_, index) => index !== idx);
-      setValue('family.data', newMemebers);
+      setValue('data.family', newMemebers);
       setMembers(newMemebers);
     }
   };
 
   useEffect(() => {
-    if (errors?.family) {
+    if (errors?.data?.family) {
       window.scrollTo({
         top: 0,
         behavior: 'smooth',
@@ -96,11 +90,18 @@ export const SecondStep: React.FC<Props> = ({
     }
   }, [errors]);
 
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }, []);
+
   return (
     <div className={css.root}>
       <div className={css.errors}>
-        {errors?.family?.data && (
-          <ErrorMessage message={String(errors?.family?.data.message)} />
+        {errors?.data?.family && (
+          <ErrorMessage message={String(errors?.data?.family.message)} />
         )}
       </div>
       <table className={css.table}>
@@ -155,7 +156,7 @@ export const SecondStep: React.FC<Props> = ({
         <hr />
         <div className={css.row}>
           <Controller
-            name="family.documents"
+            name="documents.family"
             control={control}
             render={({ field }) => (
               <FileUploader
@@ -163,6 +164,7 @@ export const SecondStep: React.FC<Props> = ({
                 label={
                   'Інформація про членів домогосподарства, що будуть проживати разом із заявником (Додати за потреби)'
                 }
+                inputName="family"
                 onChange={onChangeFile}
               >
                 <ol>
@@ -204,8 +206,8 @@ export const SecondStep: React.FC<Props> = ({
               </FileUploader>
             )}
           />
-          {errors?.avgIncome && (
-            <ErrorMessage message={String(errors?.avgIncome.message)} />
+          {errors?.documents?.family && (
+            <ErrorMessage message={String(errors?.documents?.family.message)} />
           )}
         </div>
         <div className={cx(css.row, css.actions)}>

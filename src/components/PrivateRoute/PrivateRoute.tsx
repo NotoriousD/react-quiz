@@ -1,10 +1,11 @@
-import React, { PropsWithChildren, useContext } from 'react';
+import React, { PropsWithChildren } from 'react';
 import { Navigate } from 'react-router-dom';
 
-import { WebSocketContext } from 'context/WebSocketContext';
+import { selectAuthData } from 'store/auth/selectors';
+import { useAppSelector } from 'store';
 
 export const PrivateRoute: React.FC<PropsWithChildren> = ({ children }) => {
-  const { isAuth } = useContext(WebSocketContext);
+  const { isAuth } = useAppSelector(selectAuthData);
 
   if (!isAuth) {
     return <Navigate to={'/'} />;

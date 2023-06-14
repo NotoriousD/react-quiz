@@ -20,32 +20,58 @@ export interface Family {
   avgIncome: number | undefined;
 }
 
+export enum AuthirizationStatuses {
+  Initialized = 'initialized',
+  Processing = 'processing',
+  Done = 'done',
+  NotUsed = 'notUsed',
+  Refuse = 'refuse',
+}
+
+export const statuses = {
+  [AuthirizationStatuses.Initialized]: 'ініціалізовано',
+  [AuthirizationStatuses.Processing]: 'Обробка',
+  [AuthirizationStatuses.Done]: 'Готово',
+  [AuthirizationStatuses.NotUsed]: 'Не використовується',
+  [AuthirizationStatuses.Refuse]: 'Відмова',
+};
+
+export interface FormFieldsDocuments {
+  pib: string[];
+  rnokpp: string[];
+  avgIncome: string[];
+  family: string[];
+  pregnant: string[];
+  violence: string[];
+  hasEstate: string[];
+  estateDamage: string[];
+  injured: string[];
+  singleParent: string[];
+  disabledMember: string[];
+  illegitimate: string[];
+  diseases: string[];
+  position: string[];
+}
+
 export interface FormFields {
-  pib: Blob[];
-  rnokpp: Blob[];
   addressRegion: string;
   addressSettlement: string;
   addressStreet: string;
   addressBuilding: string;
   addressFlat: string;
-  avgIncome: Blob[];
-  family: {
-    data: Family[];
-    documents: Blob[];
-  };
+  family: Family[];
   hasEstate: RadioValue<Question>;
   typeEstate: RadioValue<EstateType>;
   estateRegion: string;
   estateCity: string;
   estateStreet: string;
-  estateTerritory: EstateTerritory | undefined;
+  estateTerritory: RadioValue<EstateTerritory>;
   estateDamage: RadioValue<Damage>;
   useHelps: RadioValue<Question>;
   readyToSupply: RadioValue<Question>;
   injured: RadioValue<QuestionInjured>;
   pregnant: {
     key: string | undefined;
-    value: Blob[];
   };
   singleParent: RadioValue<QuestionSingleParent>;
   disabledMember: RadioValue<DisabledMember>;
@@ -53,7 +79,6 @@ export interface FormFields {
   diseases: RadioValue<DiseasesMember>;
   violence: {
     key: string | undefined;
-    value: Blob[];
   };
   position: RadioValue<PositionMember>;
   toBeEmployed: RadioValue<ToBeEmployedMember>;
@@ -61,87 +86,97 @@ export interface FormFields {
   additionalMessage: string;
 }
 
-export const initialValues: FormFields = {
-  pib: [],
-  rnokpp: [],
-  addressRegion: '',
-  addressSettlement: '',
-  addressStreet: '',
-  addressBuilding: '',
-  addressFlat: '',
-  avgIncome: [],
-  family: {
-    data: [],
-    documents: [],
+export interface FormFieldValues {
+  data: FormFields;
+  documents: FormFieldsDocuments;
+}
+
+export const initialValues: FormFieldValues = {
+  data: {
+    addressRegion: '',
+    addressSettlement: '',
+    addressStreet: '',
+    addressBuilding: '',
+    addressFlat: '',
+    family: [],
+    estateCity: '',
+    estateRegion: '',
+    estateStreet: '',
+    estateTerritory: {
+      key: '',
+    },
+    hasEstate: {
+      key: '',
+    },
+    typeEstate: {
+      key: '',
+      value: '',
+    },
+    estateDamage: {
+      key: '',
+      value: '',
+    },
+    useHelps: {
+      key: '',
+      value: '',
+    },
+    readyToSupply: {
+      key: '',
+      value: '',
+    },
+    injured: {
+      key: '',
+      value: '',
+    },
+    pregnant: {
+      key: undefined,
+    },
+    singleParent: {
+      key: '',
+      value: '',
+    },
+    disabledMember: {
+      key: '',
+      value: '',
+    },
+    illegitimate: {
+      key: '',
+      value: '',
+    },
+    diseases: {
+      key: '',
+      value: '',
+    },
+    violence: {
+      key: '',
+    },
+    position: {
+      key: '',
+      value: [],
+    },
+    toBeEmployed: {
+      key: '',
+      value: [],
+    },
+    patronage: undefined,
+    additionalMessage: '',
   },
-  estateCity: '',
-  estateRegion: '',
-  estateStreet: '',
-  estateTerritory: undefined,
-  hasEstate: {
-    key: '',
-    document: [],
+  documents: {
+    pib: [],
+    rnokpp: [],
+    avgIncome: [],
+    family: [],
+    pregnant: [],
+    violence: [],
+    hasEstate: [],
+    estateDamage: [],
+    injured: [],
+    singleParent: [],
+    disabledMember: [],
+    illegitimate: [],
+    diseases: [],
+    position: [],
   },
-  typeEstate: {
-    key: '',
-    value: '',
-  },
-  estateDamage: {
-    key: '',
-    value: '',
-    document: [],
-  },
-  useHelps: {
-    key: '',
-    value: '',
-  },
-  readyToSupply: {
-    key: '',
-    value: '',
-  },
-  injured: {
-    key: '',
-    value: '',
-    document: [],
-  },
-  pregnant: {
-    key: undefined,
-    value: [],
-  },
-  singleParent: {
-    key: '',
-    value: '',
-    document: [],
-  },
-  disabledMember: {
-    key: '',
-    value: '',
-  },
-  illegitimate: {
-    key: '',
-    value: '',
-    document: [],
-  },
-  diseases: {
-    key: '',
-    value: '',
-    document: [],
-  },
-  violence: {
-    key: '',
-    value: [],
-  },
-  position: {
-    key: '',
-    value: [],
-    document: [],
-  },
-  toBeEmployed: {
-    key: '',
-    value: [],
-  },
-  patronage: undefined,
-  additionalMessage: '',
 };
 
 export const getEnumOptions = (items: Record<string, any>) =>
