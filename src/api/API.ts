@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 
-import { FormFieldValues, FormFields } from 'types';
+import { FormFields } from 'types';
 import { httpClient } from './httpClient';
 
 export interface AuthData {
@@ -92,8 +92,7 @@ export const API = {
   async sendQuestionnarie(data: FormFields, requestId: string) {
     try {
       const response = await httpClient.post(
-        `/questionnaire/form/
-        ${requestId}`,
+        `/questionnaire/form/${requestId}`,
         {
           encodeForm: Buffer.from(JSON.stringify(data)).toString('base64'),
         }

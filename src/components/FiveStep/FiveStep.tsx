@@ -7,8 +7,11 @@ import * as yup from 'yup';
 import cx from 'classnames';
 
 import { FormFieldValues } from 'types';
+import { useAppSelector } from 'store';
+import { selectAuthData } from 'store/auth/selectors';
 
 import { ErrorMessage } from 'components/ErrorMessage';
+import { Loader } from 'components/Loader';
 
 import css from './fiveStep.module.scss';
 
@@ -29,6 +32,7 @@ const schema = yup.object().shape({
 });
 
 export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
+  const { isSumbitting } = useAppSelector(selectAuthData);
   const {
     handleSubmit,
     control,
@@ -73,6 +77,7 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             onClick={onBack}
             size="large"
             type="button"
+            disabled={isSumbitting}
           >
             Повернутись
           </Button>
@@ -81,11 +86,18 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             className={css.btn}
             size="large"
             type="submit"
+            disabled={isSumbitting}
           >
             Продовжити
           </Button>
         </div>
       </form>
+      {isSumbitting && (
+        <div className={css.loader}>
+          Відправка...
+          <Loader />
+        </div>
+      )}
     </div>
   );
 };
