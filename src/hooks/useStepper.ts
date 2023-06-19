@@ -6,8 +6,8 @@ export const useStepper = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!step) {
-      navigate('/1');
+    if (!step || Number(step) > 5) {
+      navigate('/form/1');
     }
   }, [step, navigate]);
 
