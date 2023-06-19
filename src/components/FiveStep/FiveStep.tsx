@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { NavLink } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import TextareaAutosize from '@mui/base/TextareaAutosize';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -32,7 +33,8 @@ const schema = yup.object().shape({
 });
 
 export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
-  const { isSumbitting } = useAppSelector(selectAuthData);
+  const timer = useRef<NodeJS.Timeout | null>(null);
+  const { isSumbitting, isSubmitted } = useAppSelector(selectAuthData);
   const {
     handleSubmit,
     control,
@@ -41,6 +43,24 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     resolver: yupResolver(schema),
     defaultValues: values,
   });
+
+  const handleGoHomePage = () => {
+    window.location.href = 'https://help-ukraine.org.ua/';
+  };
+
+  useEffect(() => {
+    if (isSubmitted && !timer.current) {
+      timer.current = setTimeout(() => {
+        window.location.href = 'https://help-ukraine.org.ua/';
+      }, 3000);
+    }
+
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    };
+  }, [isSubmitted, timer]);
 
   return (
     <div className={css.root}>
@@ -70,6 +90,12 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             />
           )}
         </div>
+        <div className={css.row}>
+          <p>
+            Надсилаючи ви даєте згоду на{' '}
+            <NavLink to={'/privacy-policy'}>обробку персональних даних</NavLink>
+          </p>
+        </div>
         <div className={cx(css.row, css.actions)}>
           <Button
             variant="outlined"
@@ -86,7 +112,7 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             className={css.btn}
             size="large"
             type="submit"
-            disabled={isSumbitting}
+            disabled={isSumbitting || isSubmitted}
           >
             Продовжити
           </Button>
@@ -96,6 +122,21 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
         <div className={css.loader}>
           Відправка...
           <Loader />
+        </div>
+      )}
+      {isSubmitted && (
+        <div className={css.submitted}>
+          Дякуємо за заповнення, з вами звʼяжуться як най швидше
+          <Button
+            variant="contained"
+            className={css.btn}
+            size="small"
+            type="button"
+            onClick={handleGoHomePage}
+            disabled={isSumbitting}
+          >
+            На головну
+          </Button>
         </div>
       )}
     </div>

@@ -12,6 +12,7 @@ interface AuthState {
   isAuth: boolean;
   status: AuthirizationStatuses | null;
   isSumbitting: boolean;
+  isSubmitted: boolean;
 }
 
 const initialState: AuthState = {
@@ -22,6 +23,7 @@ const initialState: AuthState = {
   isAuth: false,
   status: null,
   isSumbitting: false,
+  isSubmitted: false,
 };
 
 const authSlice = createSlice({
@@ -43,10 +45,18 @@ const authSlice = createSlice({
     setIsSubmitting: (state, action: PayloadAction<boolean>) => {
       state.isSumbitting = action.payload;
     },
+    setIsSubmitted: (state, action: PayloadAction<boolean>) => {
+      state.isSumbitting = action.payload;
+    },
   },
 });
 
-export const { setAuthData, setIsAuth, setStatus, setIsSubmitting } =
-  authSlice.actions;
+export const {
+  setAuthData,
+  setIsAuth,
+  setStatus,
+  setIsSubmitting,
+  setIsSubmitted,
+} = authSlice.actions;
 
 export const auth = authSlice.reducer;

@@ -14,6 +14,18 @@ const AuthorizationPage = lazy(() =>
   }))
 );
 
+const PrivacyPolicyPage = lazy(() =>
+  import('pages/PrivacyPolicyPage').then((module) => ({
+    default: module.PrivacyPolicyPage,
+  }))
+);
+
+const ErrorPage = lazy(() =>
+  import('pages/ErrorPage').then((module) => ({
+    default: module.ErrorPage,
+  }))
+);
+
 function App() {
   const router = createBrowserRouter([
     {
@@ -27,6 +39,14 @@ function App() {
           <QuizPage />
         </PrivateRoute>
       ),
+    },
+    {
+      path: '/privacy-policy',
+      element: <PrivacyPolicyPage />,
+    },
+    {
+      path: '*',
+      element: <ErrorPage />,
     },
   ]);
 

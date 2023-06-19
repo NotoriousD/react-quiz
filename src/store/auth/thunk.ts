@@ -1,6 +1,12 @@
 import { API } from 'api/API';
 import { AppDispatch, AppThunk } from 'store';
-import { setAuthData, setIsAuth, setIsSubmitting, setStatus } from './slice';
+import {
+  setAuthData,
+  setIsAuth,
+  setIsSubmitted,
+  setIsSubmitting,
+  setStatus,
+} from './slice';
 import { AuthirizationStatuses, FormFields } from 'types';
 
 export const authorization = (): AppThunk => async (dispatch: AppDispatch) => {
@@ -34,6 +40,7 @@ export const submitQuestionnarie =
 
       if (response) {
         dispatch(setIsSubmitting(false));
+        dispatch(setIsSubmitted(true));
         return response;
       }
     }
