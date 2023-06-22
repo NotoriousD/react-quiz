@@ -62,6 +62,8 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     };
   }, [isSubmitted, timer]);
 
+  console.log(isSubmitted);
+
   return (
     <div className={css.root}>
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>

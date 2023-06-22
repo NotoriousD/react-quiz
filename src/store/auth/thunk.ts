@@ -39,6 +39,7 @@ export const submitQuestionnarie =
       const response = await API.sendQuestionnarie(data, requestId);
 
       if (response) {
+        console.log('response');
         dispatch(setIsSubmitting(false));
         dispatch(setIsSubmitted(true));
         return response;

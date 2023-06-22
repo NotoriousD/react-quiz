@@ -120,7 +120,8 @@ const schema = yup.object().shape({
           : yup.array();
       }),
       estateDamage: yup.array().when(() => {
-        return data.estateDamage.key !== Damage.NoDamage
+        return data.hasEstate.key === Question.Yes &&
+          data.estateDamage.key !== Damage.NoDamage
           ? yup.array().min(1, "Поле є обов'язковим")
           : yup.array();
       }),

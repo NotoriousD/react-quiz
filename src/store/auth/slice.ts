@@ -46,7 +46,7 @@ const authSlice = createSlice({
       state.isSumbitting = action.payload;
     },
     setIsSubmitted: (state, action: PayloadAction<boolean>) => {
-      state.isSumbitting = action.payload;
+      state.isSubmitted = action.payload;
     },
   },
 });
