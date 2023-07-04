@@ -50,7 +50,6 @@ export const useClearFields = ({ fields, setValue, watch }: ClearFields) => {
           );
         }
       }
-      console.log(value, name, type);
     });
     return () => subscription.unsubscribe();
   }, [watch, setValue, fields]);

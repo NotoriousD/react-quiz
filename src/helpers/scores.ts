@@ -38,7 +38,6 @@ export const computingSecondStepScores = (
   pregnant: boolean = false
 ) => {
   const familyLength = pregnant ? data.length + 1 : data.length;
-  let scores = 0;
   let familyScore = 0;
   let avgIncomeAfter = 0;
   let avgIncomeBefore = 0;
@@ -88,10 +87,8 @@ export const computingSecondStepScores = (
   familyScore += childrenScore;
   avgIncomeAfter = incomeAfter / familyLength > 9000 ? 1 : 2;
   avgIncomeBefore = incomeBefore / familyLength > 18000 ? 2 : 1;
-  scores = familyScore + avgIncomeAfter + avgIncomeBefore;
 
   return {
-    scores,
     familyScore,
     avgIncomeAfter,
     avgIncomeBefore,
@@ -138,7 +135,6 @@ export const computingScores = (data: FormFieldValues) => {
   const {
     avgIncomeAfter,
     avgIncomeBefore,
-    scores,
     familyScore,
     childrenCount,
   } = computingSecondStepScores(family.data, isPregnant);

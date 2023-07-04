@@ -37,7 +37,6 @@ export const QuizPage: React.FC = () => {
       setValue(key as keyof FormFieldValues, value);
     });
     setTotalScore(totalScore + scores);
-    console.log(getValues());
     goNextStep();
   };
 

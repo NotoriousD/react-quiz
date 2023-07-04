@@ -1,7 +1,6 @@
 import { Relationship } from './relationship';
 import { SocialStatuses } from './socialStatus';
 import {
-  EstateType,
   Question,
   EstateTerritory,
   Damage,
@@ -20,7 +19,6 @@ import {
   QuestionInjured,
   QuestionSingleParent,
   ToBeEmployed,
-  ToBeEmployedMember,
 } from './additional';
 
 export interface Family {

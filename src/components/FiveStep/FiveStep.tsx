@@ -49,23 +49,22 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     window.location.href = 'https://help-ukraine.org.ua/';
   };
 
-  // useEffect(() => {
-  //   if (isSubmitted && !timer.current) {
-  //     timer.current = setTimeout(() => {
-  //       window.location.href = 'https://help-ukraine.org.ua/';
-  //     }, 3000);
-  //   }
+  useEffect(() => {
+    if (isSubmitted && !timer.current) {
+      timer.current = setTimeout(() => {
+        window.location.href = 'https://help-ukraine.org.ua/';
+      }, 3000);
+    }
 
-  //   return () => {
-  //     if (timer.current) {
-  //       clearTimeout(timer.current);
-  //     }
-  //   };
-  // }, [isSubmitted, timer]);
+    return () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    };
+  }, [isSubmitted, timer]);
 
   const handleSubmitForm = (data: FormFieldValues) => {
     const { newData, totalScore } = computingScores(data);
-    console.log(newData);
     onSubmitStep(newData, totalScore);
   };
 

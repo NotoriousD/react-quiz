@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -8,7 +8,7 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
-import { v4 as uuidv4 } from 'uuid';
+import { BsTrash } from 'react-icons/bs';
 
 import {
   FormFieldValues,
@@ -46,13 +46,6 @@ interface Props {
   onSubmitStep: (data: FormFieldValues) => void;
   onBack: () => void;
   values: FormFieldValues;
-}
-
-interface SecondRelationshipMember {
-  id: string;
-  name: string;
-  status: SecondRelationShip | undefined;
-  document: boolean;
 }
 
 type TextFieldTypes =
@@ -165,10 +158,10 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
   }, []);
 
   useEffect(() => {
-    if (watchInjured.key === QuestionInjured.Yes && !Boolean(fields.length)) {
+    if (watchInjured.key === QuestionInjured.Yes && !watchInjured.value.length) {
       handleAddInjuredMemeber();
     }
-  }, [watchInjured, fields, handleAddInjuredMemeber]);
+  }, [watchInjured.key, watchInjured.value, handleAddInjuredMemeber]);
 
   useEffect(() => {
     if (
@@ -235,8 +228,6 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
       );
     }
   }, [watchHugFamilyPosition, watchHugFamilyPosition.key, setValue]);
-
-  console.log(errors);
 
   return (
     <div className={css.root}>
@@ -316,7 +307,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
                           className={css.removeMember}
                           onClick={() => handleRemoveInjuredMember(index)}
                         >
-                          +
+                          <BsTrash />
                         </span>
                       )}
                     </div>
