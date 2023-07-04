@@ -1,30 +1,45 @@
-import React, { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import cx from 'classnames';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import { v4 as uuidv4 } from 'uuid';
 
-import { FormFieldValues, FormFieldsDocuments, getEnumOptions } from 'types';
 import {
+  FormFieldValues,
+  FormFieldsDocuments,
+  getEnumOptions,
+  initialValues,
+} from 'types';
+import {
+  DisableGroups,
   DisabledMember,
   DiseasesMember,
+  HugPosition,
+  HugPositionMembers,
   IllegitimateMember,
   PatronageFamily,
   PositionMember,
+  Professions,
   QuestionAddSingleParent,
   QuestionInjured,
   QuestionPregnant,
   QuestionSingleParent,
-  ToBeEmployedMember,
+  ToBeEmployed,
   ViolenceMember,
 } from 'types/additional';
+import { SecondRelationShip } from 'types/relationship';
 
 import { FileUploader } from 'components/FileUploader';
 import { ErrorMessage } from 'components/ErrorMessage';
 import { RadioInput } from 'components/RadioGroup';
 
+import { schema } from './validation';
 import css from './fourStep.module.scss';
 
 interface Props {
@@ -33,131 +48,17 @@ interface Props {
   values: FormFieldValues;
 }
 
-interface Person {
-  id: number;
+interface SecondRelationshipMember {
+  id: string;
   name: string;
-  position: string;
+  status: SecondRelationShip | undefined;
+  document: boolean;
 }
 
 type TextFieldTypes =
-  | 'data.typeEstate.key.value'
   | 'data.estateDamage.value'
   | 'data.useHelps.value'
   | 'data.readyToSupply.value';
-
-type MembersFieldTypes = 'position' | 'toBeEmployed';
-
-const schema = yup.object({
-  data: yup.object().shape({
-    injured: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-      value: yup.string().when('key', ([key]) => {
-        return key === QuestionInjured.Yes
-          ? yup.string().required("Поле є обов'язковим")
-          : yup.string();
-      }),
-    }),
-    singleParent: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-      value: yup.string().when('key', ([key]) => {
-        return key === QuestionSingleParent.Yes
-          ? yup.string().required("Поле є обов'язковим")
-          : yup.string();
-      }),
-    }),
-    disabledMember: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-      value: yup.string().when('key', ([key]) => {
-        return key === DisabledMember.Yes
-          ? yup.string().required("Поле є обов'язковим")
-          : yup.string();
-      }),
-    }),
-    illegitimate: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-      value: yup.string().when('key', ([key]) => {
-        return key !== IllegitimateMember.No
-          ? yup.string().required("Поле є обов'язковим")
-          : yup.string();
-      }),
-    }),
-    diseases: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-      value: yup.string().when('key', ([key]) => {
-        return key === DiseasesMember.Yes
-          ? yup.string().required("Поле є обов'язковим")
-          : yup.string();
-      }),
-    }),
-    position: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-      value: yup.array().when('key', ([key]) => {
-        return key === PositionMember.Yes
-          ? yup.array().min(1, 'Необхідно заповнити хочаб одну людину')
-          : yup.array();
-      }),
-    }),
-    toBeEmployed: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-      value: yup.array().when('key', ([key]) => {
-        return key === ToBeEmployedMember.Yes
-          ? yup.array().min(1, 'Необхідно заповнити хочаб одну людину')
-          : yup.array();
-      }),
-    }),
-    pregnant: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-    }),
-    violence: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-    }),
-    patronage: yup.string().required("Поле є обов'язковим"),
-  }),
-  documents: yup.object().when('data', ([data]) => {
-    return yup.object().shape({
-      injured: yup.array().when(() => {
-        return data.injured.key === QuestionInjured.Yes
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-      singleParent: yup.array().when(() => {
-        return data.singleParent.key === QuestionSingleParent.Yes
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-      disabledMember: yup.array().when(() => {
-        return data.disabledMember.key === DisabledMember.Yes
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-      illegitimate: yup.array().when(() => {
-        return data.illegitimate.key !== IllegitimateMember.No
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-      diseases: yup.array().when(() => {
-        return data.diseases.key === DiseasesMember.Yes
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-      position: yup.array().when(() => {
-        return data.position.key === PositionMember.Yes
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-      violence: yup.array().when(() => {
-        return data.violence.key === ViolenceMember.Yes
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-      pregnant: yup.array().when(() => {
-        return data.pregnant.key === QuestionPregnant.Yes
-          ? yup.array().min(1, 'Необхідно додати файл')
-          : yup.array();
-      }),
-    });
-  }),
-});
 
 export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
   const {
@@ -166,21 +67,51 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     formState: { errors },
     setValue,
     getValues,
+    register,
     watch,
   } = useForm<FormFieldValues>({
     resolver: yupResolver(schema),
     defaultValues: values,
   });
+  const { append, remove, update, fields } = useFieldArray({
+    control,
+    name: 'data.injured.value',
+  });
 
-  const watchInjured = watch('data.injured');
-  const watchPregnant = watch('data.pregnant');
-  const watchSingleParent = watch('data.singleParent');
-  const watchDisabledMember = watch('data.disabledMember');
-  const watchIllegitimate = watch('data.illegitimate');
-  const watchDiseases = watch('data.diseases');
-  const watchViolence = watch('data.violence');
-  const watchPosition = watch('data.position');
-  const watchToBeEmployed = watch('data.toBeEmployed');
+  const [
+    watchInjured,
+    watchPregnant,
+    watchSingleParent,
+    watchDisabledMember,
+    watchIllegitimate,
+    watchDiseases,
+    watchViolence,
+    watchPosition,
+    watchFamilyPosition,
+    watchHugPosition,
+    watchHugFamilyPosition,
+    watchToBeEmployed,
+    watchToBeEmployedMembers,
+  ] = watch([
+    'data.injured',
+    'data.pregnant',
+    'data.singleParent',
+    'data.disabledMember',
+    'data.illegitimate',
+    'data.diseases',
+    'data.violence',
+    'data.position',
+    'data.familyPosition',
+    'data.hugPosition',
+    'data.hugFamilyPosition',
+    'data.toBeEmployed',
+    'data.toBeEmployedMembers',
+  ]);
+
+  const generateDefaultMember = () => ({
+    name: '',
+    status: undefined,
+  });
 
   const handleChangeFile = (
     name: keyof FormFieldsDocuments,
@@ -191,11 +122,18 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
 
   const onChangeFile = (
     name: keyof FormFieldsDocuments,
-    files: string | string[]
+    files: string | string[],
+    fileId?: string,
+    idx?: number
   ) => {
-    const key = name.replace('documents.', '');
-    //@ts-ignore
-    handleChangeFile(key, files);
+    if (fileId && idx) {
+      const members = getValues('data.injured.value');
+      update(idx, { ...members[fileId], document: true });
+    } else {
+      const key = name.replace('documents.', '');
+      //@ts-ignore
+      handleChangeFile(key, files);
+    }
   };
 
   const handleChangeTextField = (
@@ -204,46 +142,20 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     setValue(event.target.name as TextFieldTypes, event.target.value);
   };
 
-  const handleChangeMembers = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    idx: number,
-    name: string
-  ) => {
-    const members =
-      getValues().data[event.target.name as MembersFieldTypes]?.value || [];
-    const member = Boolean(members.length)
-      ? members.find((person: Person) => person.id === idx)
-      : undefined;
-    let newMembers;
+  const handleAddInjuredMemeber = useCallback(() => {
+    append(generateDefaultMember());
+  }, [append]);
 
-    if (member && !Boolean(event.target.value)) {
-      newMembers = members.filter((person: Person) => person.id !== idx);
-      setValue(
-        `data.${event.target.name as MembersFieldTypes}.value`,
-        newMembers
-      );
-      return;
-    }
-
-    if (member) {
-      newMembers = members.map((person: Person) => {
-        if (person.id === idx) {
-          return { ...person, position: event.target.value };
-        }
-        return person;
-      });
-    } else {
-      newMembers = [
-        ...members,
-        { id: idx, name, position: event.target.value },
-      ];
-    }
-
-    setValue(
-      `data.${event.target.name as MembersFieldTypes}.value`,
-      newMembers
-    );
+  const handleRemoveInjuredMember = (id: number) => {
+    remove(id);
   };
+
+  const getFamilyMemberNames = useMemo(() => {
+    if (Boolean(values.data.family.data.length)) {
+      return values.data.family.data.map((member) => member.pib);
+    }
+    return [];
+  }, [values.data.family]);
 
   useEffect(() => {
     window.scrollTo({
@@ -252,9 +164,84 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     });
   }, []);
 
+  useEffect(() => {
+    if (watchInjured.key === QuestionInjured.Yes && !Boolean(fields.length)) {
+      handleAddInjuredMemeber();
+    }
+  }, [watchInjured, fields, handleAddInjuredMemeber]);
+
+  useEffect(() => {
+    if (
+      watchDisabledMember.key === DisabledMember.No &&
+      Boolean(watchDisabledMember.value?.name)
+    ) {
+      setValue(
+        'data.disabledMember.value',
+        initialValues.data.disabledMember.value
+      );
+    }
+  }, [watchDisabledMember, watchDisabledMember.key, setValue]);
+
+  useEffect(() => {
+    if (
+      watchIllegitimate.key === IllegitimateMember.No &&
+      Boolean(watchIllegitimate.value?.name)
+    ) {
+      setValue(
+        'data.illegitimate.value',
+        initialValues.data.illegitimate.value
+      );
+    }
+  }, [watchIllegitimate, watchIllegitimate.key, setValue]);
+
+  useEffect(() => {
+    if (
+      watchDiseases.key === DiseasesMember.No &&
+      Boolean(watchDiseases.value?.name)
+    ) {
+      setValue('data.diseases.value', initialValues.data.diseases.value);
+    }
+  }, [watchDiseases, watchDiseases.key, setValue]);
+
+  useEffect(() => {
+    if (
+      watchHugPosition.key === HugPosition.No &&
+      Boolean(watchHugPosition.value)
+    ) {
+      setValue('data.hugPosition.value', initialValues.data.hugPosition.value);
+    }
+  }, [watchHugPosition, watchHugPosition.key, setValue]);
+
+  useEffect(() => {
+    if (
+      watchFamilyPosition.key === PositionMember.No &&
+      Boolean(watchFamilyPosition.value?.name)
+    ) {
+      setValue(
+        'data.familyPosition.value',
+        initialValues.data.familyPosition.value
+      );
+    }
+  }, [watchFamilyPosition, watchFamilyPosition.key, setValue]);
+
+  useEffect(() => {
+    if (
+      watchHugFamilyPosition.key === HugPositionMembers.No &&
+      Boolean(watchHugFamilyPosition.value?.name)
+    ) {
+      setValue(
+        'data.hugFamilyPosition.value',
+        initialValues.data.hugFamilyPosition.value
+      );
+    }
+  }, [watchHugFamilyPosition, watchHugFamilyPosition.key, setValue]);
+
+  console.log(errors);
+
   return (
     <div className={css.root}>
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
+        {/* injured */}
         <div className={css.row}>
           <Controller
             name="data.injured.key"
@@ -264,15 +251,88 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
               <RadioInput
                 {...field}
                 title="Чи є серед членів вашого домогосподарства особи, які внаслідок війни на території України отримали поранення, померли чи вважаються зниклими безвісти?"
-                inputName="data.injured.value"
-                fieldValue={values?.data.injured.value}
-                withOther={[QuestionInjured.Yes]}
-                onChangeTextField={handleChangeTextField}
                 options={getEnumOptions(QuestionInjured)}
                 error={errors?.data?.injured}
               />
             )}
           />
+        </div>
+        {/* injured members */}
+        <div className={css.row}>
+          {watchInjured.key === QuestionInjured.Yes && (
+            <div className={css.generatorContainer}>
+              <div className={css.tip}></div>
+              {fields.map((field, index) => {
+                const isFirst = index === 0;
+                return (
+                  <div key={field.id} className={css.generator}>
+                    <div className={css.col}>
+                      <TextField
+                        {...register(`data.injured.value.${index}.name`)}
+                        label="ПІБ"
+                        className={css.textField}
+                      />
+                      {Array.isArray(errors?.data?.injured?.value) &&
+                        Boolean(errors?.data?.injured?.value[index]?.name) && (
+                          <ErrorMessage
+                            message={String(
+                              errors?.data?.injured?.value[index]?.name.message
+                            )}
+                          />
+                        )}
+                    </div>
+                    <div className={css.col}>
+                      <FormControl className={css.selectWrapper}>
+                        <InputLabel className={css.selectLabel}>
+                          Тип відносин
+                        </InputLabel>
+                        <Select
+                          {...register(`data.injured.value.${index}.status`)}
+                          className={css.select}
+                          label="Тип відносин"
+                        >
+                          {getEnumOptions(SecondRelationShip).map(
+                            ({ label, value }) => (
+                              <MenuItem value={value}>{label}</MenuItem>
+                            )
+                          )}
+                        </Select>
+                      </FormControl>
+                      {Array.isArray(errors?.data?.injured?.value) &&
+                        Boolean(
+                          errors?.data?.injured?.value[index]?.status
+                        ) && (
+                          <ErrorMessage
+                            message={String(
+                              errors?.data?.injured?.value[index]?.status
+                                .message
+                            )}
+                          />
+                        )}
+                    </div>
+                    <div className={css.col}>
+                      {!isFirst && (
+                        <span
+                          className={css.removeMember}
+                          onClick={() => handleRemoveInjuredMember(index)}
+                        >
+                          +
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              <Button
+                variant="contained"
+                className={css.btn}
+                size="small"
+                onClick={handleAddInjuredMemeber}
+              >
+                Додати
+              </Button>
+            </div>
+          )}
         </div>
         <div className={css.row}>
           <Controller
@@ -282,16 +342,18 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
               <FileUploader
                 {...field}
                 onChange={onChangeFile}
+                isMultiply
                 disabled={
                   watchInjured?.key === QuestionInjured.No || !watchInjured?.key
                 }
                 inputName="injured"
               >
                 <p className={css.text}>
-                  Докази сімейного домогосподарства, член якого загинув або зник
-                  безвісти під час та внаслідок військового конфлікту на
-                  території України протягом 2014-2023 років; (рішення суду про
-                  визнання особи загиблою або безвісти зниклою)
+                  До кожної доданої людини необхідно додати докази сімейного
+                  домогосподарства, член якого загинув або зник безвісти під час
+                  та внаслідок військового конфлікту на території України
+                  протягом 2014-2023 років; ( рішення суду про визнання особи
+                  загиблою або безвісти зниклою)
                 </p>
               </FileUploader>
             )}
@@ -303,6 +365,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* pregnant */}
         <div className={css.row}>
           <Controller
             name="data.pregnant.key"
@@ -318,6 +381,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             )}
           />
         </div>
+        {/* pregnant file */}
         <div className={css.row}>
           <Controller
             name="documents.pregnant"
@@ -345,6 +409,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* single parent */}
         <div className={css.row}>
           <Controller
             name="data.singleParent.key"
@@ -366,6 +431,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             )}
           />
         </div>
+        {/* single parent file */}
         <div className={css.row}>
           <Controller
             name="documents.singleParent"
@@ -410,6 +476,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* disabled member */}
         <div className={css.row}>
           <Controller
             name="data.disabledMember.key"
@@ -419,16 +486,81 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
               <RadioInput
                 {...field}
                 title="Чи є серед вашого домогосподарства особи з інвалідністю"
-                inputName="data.disabledMember.value"
-                fieldValue={values?.data.disabledMember.value}
-                withOther={[DisabledMember.Yes]}
-                onChangeTextField={handleChangeTextField}
                 options={getEnumOptions(DisabledMember)}
                 error={errors?.data?.disabledMember}
               />
             )}
           />
         </div>
+        {/* disabled member list */}
+        {watchDisabledMember.key === DisabledMember.Yes && (
+          <div className={cx(css.row, css.cols)}>
+            <div className={css.col}>
+              <Controller
+                name="data.disabledMember.value.name"
+                control={control}
+                defaultValue={values?.data?.disabledMember?.value?.name}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>
+                      Особа з інвалідністю
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      className={css.select}
+                      label="Особа з інвалідністю"
+                    >
+                      {getEnumOptions(getFamilyMemberNames).map(
+                        ({ label, value }) => (
+                          <MenuItem value={value}>{label}</MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              {Boolean(errors?.data?.disabledMember) &&
+                errors?.data?.disabledMember?.value?.name && (
+                  <ErrorMessage
+                    message={String(
+                      errors?.data?.disabledMember?.value?.name.message
+                    )}
+                  />
+                )}
+            </div>
+            <div className={css.col}>
+              <Controller
+                name="data.disabledMember.value.value"
+                control={control}
+                defaultValue={values?.data?.disabledMember?.value?.value}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>
+                      Група інвалідності
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      className={css.select}
+                      label="Група інвалідності"
+                    >
+                      {getEnumOptions(DisableGroups).map(({ label, value }) => (
+                        <MenuItem value={value}>{label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              {errors?.data?.disabledMember?.value?.value && (
+                <ErrorMessage
+                  message={String(
+                    errors?.data?.disabledMember?.value?.value.message
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        )}
+        {/* disabled member file */}
         <div className={css.row}>
           <Controller
             name="documents.disabledMember"
@@ -458,6 +590,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* illegitimate */}
         <div className={css.row}>
           <Controller
             name="data.illegitimate.key"
@@ -467,19 +600,73 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
               <RadioInput
                 {...field}
                 title="Чи є серед членів вашого домогосподарства особи, що повністю або частково вважаються непрацездатними?"
-                inputName="data.illegitimate.value"
-                fieldValue={values?.data.illegitimate.value}
-                withOther={[
-                  IllegitimateMember.Partly,
-                  IllegitimateMember.Fully,
-                ]}
-                onChangeTextField={handleChangeTextField}
                 options={getEnumOptions(IllegitimateMember)}
                 error={errors?.data?.illegitimate}
               />
             )}
           />
         </div>
+        {/* illegitimate list */}
+        {(watchIllegitimate.key === IllegitimateMember.Fully ||
+          watchIllegitimate.key === IllegitimateMember.Partly) && (
+          <div className={cx(css.row, css.cols)}>
+            <div className={css.col}>
+              <Controller
+                name="data.illegitimate.value.name"
+                control={control}
+                defaultValue={values?.data?.illegitimate?.value?.name}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>
+                      Особа з непрацездатністю
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      className={css.select}
+                      label="Особа з непрацездатністю"
+                    >
+                      {getEnumOptions(getFamilyMemberNames).map(
+                        ({ label, value }) => (
+                          <MenuItem value={value}>{label}</MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              {Boolean(errors?.data?.illegitimate) &&
+                errors?.data?.illegitimate?.value?.name && (
+                  <ErrorMessage
+                    message={String(
+                      errors?.data?.illegitimate?.value?.name.message
+                    )}
+                  />
+                )}
+            </div>
+            <div className={css.col}>
+              <Controller
+                name="data.illegitimate.value.value"
+                control={control}
+                defaultValue={values?.data?.illegitimate?.value?.value}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Причину"
+                    className={css.textField}
+                  />
+                )}
+              />
+              {errors?.data?.illegitimate?.value?.value && (
+                <ErrorMessage
+                  message={String(
+                    errors?.data?.illegitimate?.value?.value.message
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        )}
+        {/* illegitimate file */}
         <div className={css.row}>
           <Controller
             name="documents.illegitimate"
@@ -513,6 +700,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* diseases */}
         <div className={css.row}>
           <Controller
             name="data.diseases.key"
@@ -522,16 +710,70 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
               <RadioInput
                 {...field}
                 title="Чи є серед членів вашого домогосподарства особи з тяжкими захворюваннями?"
-                inputName="data.diseases.value"
-                fieldValue={values?.data.diseases.value}
-                withOther={[DiseasesMember.Yes]}
-                onChangeTextField={handleChangeTextField}
                 options={getEnumOptions(DiseasesMember)}
                 error={errors?.data?.diseases}
               />
             )}
           />
         </div>
+        {/* diseases list */}
+        {watchDiseases.key === DiseasesMember.Yes && (
+          <div className={cx(css.row, css.cols)}>
+            <div className={css.col}>
+              <Controller
+                name="data.diseases.value.name"
+                control={control}
+                defaultValue={values?.data?.diseases?.value?.name}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>
+                      Особа з тяжким захворюванням
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      className={css.select}
+                      label="Особа з тяжким захворюванням"
+                    >
+                      {getEnumOptions(getFamilyMemberNames).map(
+                        ({ label, value }) => (
+                          <MenuItem value={value}>{label}</MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+              {Boolean(errors?.data?.diseases) &&
+                errors?.data?.diseases?.value?.name && (
+                  <ErrorMessage
+                    message={String(
+                      errors?.data?.diseases?.value?.name.message
+                    )}
+                  />
+                )}
+            </div>
+            <div className={css.col}>
+              <Controller
+                name="data.diseases.value.value"
+                control={control}
+                defaultValue={values?.data?.diseases?.value?.value}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Вид захворювання"
+                    className={css.textField}
+                  />
+                )}
+              />
+              {errors?.data?.diseases?.value?.value && (
+                <ErrorMessage
+                  message={String(errors?.data?.diseases?.value?.value.message)}
+                />
+              )}
+            </div>
+          </div>
+        )}
+        {/* diseases file */}
         <div className={css.row}>
           <Controller
             name="documents.diseases"
@@ -569,6 +811,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* violence */}
         <div className={css.row}>
           <Controller
             name="data.violence.key"
@@ -584,6 +827,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             )}
           />
         </div>
+        {/* violence file */}
         <div className={css.row}>
           <Controller
             name="documents.violence"
@@ -613,63 +857,34 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* position */}
         <div className={css.row}>
+          <div className={css.title}>
+            Чи маєте ви необхідні знання, яки дозволяють обіймати зазначені
+            посади
+          </div>
           <Controller
             name="data.position.key"
             control={control}
             defaultValue={values?.data.position.key}
             render={({ field }) => (
-              <RadioInput
-                {...field}
-                title="Чи є серед членів вашого домогосподарства особи, що можуть (мають необхідні знання і досвід) обіймати зазначені посади: Сімейний лікар, Лікар-педіатр (сімейний), Нотаріус, Програміст (спеціаліст у сфері ІТ-технологій), Вчитель англійської мови, Хореограф, Механізатор, Електрик, Тренер, Юрист, Бухгалтер, ПІДПРИЄМЕЦЬ готовий працювати чи створити робочі місця (бізнес)"
-                options={getEnumOptions(PositionMember)}
-                error={errors?.data?.position}
-              />
+              <FormControl className={css.selectWrapper}>
+                <InputLabel className={css.selectLabel}>Посада</InputLabel>
+                <Select {...field} className={css.select} label="Посада">
+                  {getEnumOptions(Professions).map(({ label, value }) => (
+                    <MenuItem value={value}>{label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             )}
           />
-        </div>
-        <div className={css.row}>
-          {Boolean(values?.data.family.length) &&
-            values.data.family.map(({ pib }, idx) => {
-              const defaultValue = Boolean(
-                values?.data.toBeEmployed?.value?.length
-              )
-                ? values?.data.toBeEmployed.value.find(
-                    (item: Person) => item.id === idx
-                  )?.position
-                : undefined;
-              return (
-                <div className={css.rowLine} key={idx}>
-                  <div
-                    className={cx(css.memberName, {
-                      [css.disabled]:
-                        watchPosition?.key === PositionMember.No ||
-                        !watchPosition?.key,
-                    })}
-                  >
-                    {pib}
-                  </div>
-                  <TextField
-                    name="position"
-                    label="Посада"
-                    size="small"
-                    defaultValue={defaultValue}
-                    className={css.textField}
-                    disabled={
-                      watchPosition?.key === PositionMember.No ||
-                      !watchPosition?.key
-                    }
-                    onChange={(e) => handleChangeMembers(e, idx, pib)}
-                  />
-                </div>
-              );
-            })}
-          {errors?.data?.position?.value && (
+          {errors?.data?.position?.key && (
             <ErrorMessage
-              message={String(errors?.data?.position?.value.message)}
+              message={String(errors?.data?.position?.key.message)}
             />
           )}
         </div>
+        {/* position file */}
         <div className={css.row}>
           <Controller
             name="documents.position"
@@ -679,8 +894,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
                 {...field}
                 onChange={onChangeFile}
                 disabled={
-                  watchPosition?.key === PositionMember.No ||
-                  !watchPosition?.key
+                  watchPosition?.key === Professions.No || !watchPosition?.key
                 }
                 inputName="position"
               >
@@ -710,6 +924,79 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
           )}
         </div>
         <hr />
+        {/* hug position */}
+        <div className={css.row}>
+          <Controller
+            name="data.hugPosition.key"
+            control={control}
+            defaultValue={values?.data.hugPosition.key}
+            render={({ field }) => (
+              <RadioInput
+                {...field}
+                title="Чи обіймали/обіймаєте ви посаду, зазначену в списку або ви готові створити власний бізнес що дозволяє забезпечувати домогосподарство заявника"
+                options={getEnumOptions(HugPosition)}
+                error={errors?.data?.hugPosition}
+              />
+            )}
+          />
+        </div>
+        {/* hug position list */}
+        {watchHugPosition.key === HugPosition.Yes && (
+          <div className={css.row}>
+            <Controller
+              name="data.hugPosition.value"
+              control={control}
+              defaultValue={values?.data?.hugPosition.value}
+              render={({ field }) => (
+                <FormControl className={css.selectWrapper}>
+                  <InputLabel className={css.selectLabel}>Посада</InputLabel>
+                  <Select {...field} className={css.select} label="Посада">
+                    {getEnumOptions(Professions)
+                      .filter(({ label }) => label !== Professions.No)
+                      .map(({ label, value }) => (
+                        <MenuItem value={value}>{label}</MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              )}
+            />
+            {errors?.data?.hugPosition?.value && (
+              <ErrorMessage
+                message={String(errors?.data?.hugPosition?.value.message)}
+              />
+            )}
+          </div>
+        )}
+        {/* hug position file */}
+        <div className={css.row}>
+          <Controller
+            name="documents.hugPosition"
+            control={control}
+            render={({ field }) => (
+              <FileUploader
+                {...field}
+                onChange={onChangeFile}
+                disabled={
+                  watchHugPosition?.key === HugPosition.No ||
+                  !watchHugPosition?.key
+                }
+                inputName="hugPosition"
+              >
+                <p className={css.text}>
+                  Довідка за попереднім місцем роботи, характеристика, резюме
+                  тощо.
+                </p>
+              </FileUploader>
+            )}
+          />
+          {errors?.documents?.hugPosition && (
+            <ErrorMessage
+              message={String(errors?.documents?.hugPosition.message)}
+            />
+          )}
+        </div>
+        <hr />
+        {/* to be employed */}
         <div className={css.row}>
           <Controller
             name="data.toBeEmployed.key"
@@ -718,52 +1005,265 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             render={({ field }) => (
               <RadioInput
                 {...field}
-                title="Чи є серед вказаних осіб бажаючі бути працевлаштованими за обраними спеціальностями у селі Старий Биків Ніжинського району Чернігівської області?"
-                options={getEnumOptions(ToBeEmployedMember)}
+                title="Чи згодні ви займати посаду та чи готові до працевлаштування на території Новобасанської громади на зазначені вакансії чи готові створити власний бізнес, який дозволить забезпечувати своє господарство та створювати додаткові робочі місця для жителів громади"
+                options={getEnumOptions(ToBeEmployed)}
                 error={errors?.data?.toBeEmployed}
               />
             )}
           />
         </div>
+        {/* to be employed file */}
         <div className={css.row}>
-          {Boolean(values?.data.family.length) &&
-            values.data.family.map(({ pib }, idx) => {
-              const defaultValue = Boolean(
-                values?.data.toBeEmployed?.value?.length
-              )
-                ? values?.data.toBeEmployed.value.find(
-                    (item: Person) => item.id === idx
-                  )?.position
-                : undefined;
-              return (
-                <div className={css.rowLine} key={idx}>
-                  <div
-                    className={cx(css.memberName, {
-                      [css.disabled]:
-                        watchToBeEmployed?.key === ToBeEmployedMember.No ||
-                        !watchToBeEmployed?.key,
-                    })}
-                  >
-                    {pib}
-                  </div>
-                  <TextField
-                    name="toBeEmployed"
-                    label="Посада"
-                    size="small"
-                    defaultValue={defaultValue}
-                    className={css.textField}
-                    disabled={
-                      watchToBeEmployed?.key === ToBeEmployedMember.No ||
-                      !watchToBeEmployed?.key
-                    }
-                    onChange={(e) => handleChangeMembers(e, idx, pib)}
-                  />
-                </div>
-              );
-            })}
-          {errors?.data?.toBeEmployed?.value && (
+          <Controller
+            name="documents.toBeEmployed"
+            control={control}
+            render={({ field }) => (
+              <FileUploader
+                {...field}
+                onChange={onChangeFile}
+                disabled={
+                  watchToBeEmployed?.key !== ToBeEmployed.Ready ||
+                  !watchToBeEmployed?.key
+                }
+                inputName="toBeEmployed"
+              >
+                <p className={css.text}>Документ з пропозицією по бізнесу.</p>
+              </FileUploader>
+            )}
+          />
+          {errors?.documents?.toBeEmployed && (
             <ErrorMessage
-              message={String(errors?.data?.toBeEmployed?.value.message)}
+              message={String(errors?.documents?.toBeEmployed.message)}
+            />
+          )}
+        </div>
+        <hr />
+        {/* family position */}
+        <div className={css.row}>
+          <Controller
+            name="data.familyPosition.key"
+            control={control}
+            defaultValue={values?.data.familyPosition.key}
+            render={({ field }) => (
+              <RadioInput
+                {...field}
+                title="Чи є серед членів вашого домогосподарства особи, що можуть (мають необхідні знання і досвід) обіймати зазначені посади: Сімейний лікар, Лікар-педіатр (сімейний), Нотаріус, Програміст (спеціаліст у сфері ІТ-технологій), Вчитель англійської мови, Хореограф, Механізатор, Електрик, Тренер, Юрист, Бухгалтер, ПІДПРИЄМЕЦЬ готовий працювати чи створити робочі місця (бізнес)"
+                options={getEnumOptions(PositionMember)}
+                error={errors?.data?.familyPosition}
+              />
+            )}
+          />
+        </div>
+        {/* family position list */}
+        {watchFamilyPosition.key === PositionMember.Yes && (
+          <div className={cx(css.row, css.cols)}>
+            <div className={css.col}>
+              <Controller
+                name="data.familyPosition.value.name"
+                control={control}
+                defaultValue={values?.data?.familyPosition?.value?.name}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>
+                      Член домогосодарства
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      className={css.select}
+                      label="Член домогосодарства"
+                    >
+                      {getEnumOptions(getFamilyMemberNames).map(
+                        ({ label, value }) => (
+                          <MenuItem value={value}>{label}</MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </div>
+            <div className={css.col}>
+              <Controller
+                name="data.familyPosition.value.value"
+                control={control}
+                defaultValue={values?.data?.familyPosition?.value?.value}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>Посада</InputLabel>
+                    <Select {...field} className={css.select} label="Посада">
+                      {getEnumOptions(Professions)
+                        .filter(({ label }) => label !== Professions.No)
+                        .map(({ label, value }) => (
+                          <MenuItem value={value}>{label}</MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </div>
+          </div>
+        )}
+        {/* family position members file */}
+        <div className={css.row}>
+          <Controller
+            name="documents.familyPosition"
+            control={control}
+            render={({ field }) => (
+              <FileUploader
+                {...field}
+                onChange={onChangeFile}
+                disabled={
+                  watchFamilyPosition?.key === PositionMember.No ||
+                  !watchFamilyPosition?.key
+                }
+                inputName="familyPosition"
+              >
+                <p className={css.text}>
+                  Довідка за попереднім місцем роботи, характеристика, резюме
+                  тощо.
+                </p>
+              </FileUploader>
+            )}
+          />
+          {errors?.documents?.hugFamilyPosition && (
+            <ErrorMessage
+              message={String(errors?.documents?.hugFamilyPosition.message)}
+            />
+          )}
+        </div>
+        <hr />
+        {/* hug position members */}
+        <div className={css.row}>
+          <Controller
+            name="data.hugFamilyPosition.key"
+            control={control}
+            defaultValue={values?.data.hugFamilyPosition.key}
+            render={({ field }) => (
+              <RadioInput
+                {...field}
+                title="Чи обіймали/обіймають вони посаду, зазначену в списку або вони готові створити власний бізнес дозволяє забезпечувати домогосподарство заявника"
+                options={getEnumOptions(HugPositionMembers)}
+                error={errors?.data?.position}
+              />
+            )}
+          />
+        </div>
+        {/* hug position members list */}
+        {watchHugFamilyPosition.key === HugPositionMembers.Yes && (
+          <div className={cx(css.row, css.cols)}>
+            <div className={css.col}>
+              <Controller
+                name="data.hugFamilyPosition.value.name"
+                control={control}
+                defaultValue={values?.data?.hugFamilyPosition?.value?.name}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>
+                      Член домогосодарства
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      className={css.select}
+                      label="Член домогосодарства"
+                    >
+                      {getEnumOptions(getFamilyMemberNames).map(
+                        ({ label, value }) => (
+                          <MenuItem value={value}>{label}</MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </div>
+            <div className={css.col}>
+              <Controller
+                name="data.hugFamilyPosition.value.value"
+                control={control}
+                defaultValue={values?.data?.hugFamilyPosition?.value?.value}
+                render={({ field }) => (
+                  <FormControl className={css.selectWrapper}>
+                    <InputLabel className={css.selectLabel}>Посада</InputLabel>
+                    <Select {...field} className={css.select} label="Посада">
+                      {getEnumOptions(Professions)
+                        .filter(({ label }) => label !== Professions.No)
+                        .map(({ label, value }) => (
+                          <MenuItem value={value}>{label}</MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                )}
+              />
+            </div>
+          </div>
+        )}
+        {/* hug position members file */}
+        <div className={css.row}>
+          <Controller
+            name="documents.hugFamilyPosition"
+            control={control}
+            render={({ field }) => (
+              <FileUploader
+                {...field}
+                onChange={onChangeFile}
+                disabled={
+                  watchHugFamilyPosition?.key === HugPositionMembers.No ||
+                  !watchHugFamilyPosition?.key
+                }
+                inputName="hugFamilyPosition"
+              >
+                <p className={css.text}>
+                  Довідка за попереднім місцем роботи, характеристика, резюме
+                  тощо.
+                </p>
+              </FileUploader>
+            )}
+          />
+          {errors?.documents?.hugFamilyPosition && (
+            <ErrorMessage
+              message={String(errors?.documents?.hugFamilyPosition.message)}
+            />
+          )}
+        </div>
+        <hr />
+        {/* to be employed members */}
+        <div className={css.row}>
+          <Controller
+            name="data.toBeEmployedMembers.key"
+            control={control}
+            defaultValue={values?.data.toBeEmployedMembers.key}
+            render={({ field }) => (
+              <RadioInput
+                {...field}
+                title="Чи є серед вказаних осіб бажаючі бути працевлаштованими за обраними спеціальностями у селі Старий Биків Ніжинського району Чернігівської області?"
+                options={getEnumOptions(ToBeEmployed)}
+                error={errors?.data?.toBeEmployed}
+              />
+            )}
+          />
+        </div>
+        {/* to be employed members file */}
+        <div className={css.row}>
+          <Controller
+            name="documents.toBeEmployedMembers"
+            control={control}
+            render={({ field }) => (
+              <FileUploader
+                {...field}
+                onChange={onChangeFile}
+                disabled={
+                  watchToBeEmployedMembers?.key !== ToBeEmployed.Ready ||
+                  !watchToBeEmployedMembers?.key
+                }
+                inputName="toBeEmployedMembers"
+              >
+                <p className={css.text}>Документ з пропозицією по бізнесу.</p>
+              </FileUploader>
+            )}
+          />
+          {errors?.documents?.toBeEmployedMembers && (
+            <ErrorMessage
+              message={String(errors?.documents?.toBeEmployedMembers.message)}
             />
           )}
         </div>
@@ -776,10 +1276,7 @@ export const FourStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
             render={({ field }) => (
               <RadioInput
                 {...field}
-                title="Чи є бажання/можливість у вашого домогосодарства стати патронатною сім'єю?
-
-                (Це тимчасова форма влаштування дитини у сім’ю, де термін перебування дитини не може перевищувати трьох місяців).
-                "
+                title="Чи є бажання/можливість у вашого домогосодарства стати патронатною сім'єю? (Це тимчасова форма влаштування дитини у сім’ю, де термін перебування дитини не може перевищувати трьох місяців)."
                 options={getEnumOptions(PatronageFamily)}
                 error={
                   errors?.data?.patronage

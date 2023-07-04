@@ -11,6 +11,10 @@
     grid-gap: 20px;
 }
 
+.row {
+    margin-bottom: 20px;
+}
+
 .btn {
     width: 100%;
 }
@@ -28,6 +32,16 @@ table, th, td {
     margin-bottom: 10px;
 }
 
+hr {
+    margin-bottom: 20px;
+}
+
+.title {
+    font-size: 1rem;
+    line-height: 1.4375em;
+    letter-spacing: 0.00938em;
+}
+
 .table {
     margin-bottom: 15px;
     border-collapse: collapse;
@@ -35,7 +49,7 @@ table, th, td {
 
     th, td {
         padding: 5px;
-        font-size: 12px;
+        font-size: 10px;
     }
 
     span {

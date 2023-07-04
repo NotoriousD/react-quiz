@@ -84,7 +84,7 @@ export const RadioInput: React.FC<RadioInputProps> = ({
               size="small"
               type={inputType}
               name={inputName}
-              defaultValue={fieldValue}
+              defaultValue={fieldValue || ''}
               onChange={onChangeTextField}
               disabled={value !== option.value}
             />

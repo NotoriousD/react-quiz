@@ -18,6 +18,7 @@
 .title {
     font-size: 16px;
     font-weight: 600;
+    margin-bottom: 15px;
 }
 
 .text {
@@ -44,6 +45,57 @@
 }
 
 .actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+}
+
+.generatorContainer {
+    display: grid;
+    grid-gap: 15px;
+}
+
+.tip {
+    font-style: italic;
+    font-size: 14px;
+}
+
+.cols {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    grid-gap: 24px;
+}
+
+.generator {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 45% 45% 10%;
+    grid-gap: 10px;
+    align-items: center;
+}
+
+.removeMember {
+    display: block;
+    transform: rotate(45deg);
+    font-size: 24px;
+    color: red;
+    cursor: pointer;
+    margin-right: 5px;
+    text-align: center;
+    line-height: 24px;
+}
+
+.selectWrapper {
+    width: 100%;
+}
+
+.familyPositionWrapper {
+    display: grid;
+    grid-gap: 20px;
+}
+
+.familyPositionRow {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-gap: 10px;

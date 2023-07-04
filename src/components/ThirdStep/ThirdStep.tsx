@@ -3,12 +3,15 @@ import { useForm, Controller } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import cx from 'classnames';
 
-import { FormFieldValues, FormFieldsDocuments, getEnumOptions } from 'types';
 import {
-  Capital,
+  FormFieldValues,
+  FormFieldsDocuments,
+  getEnumOptions,
+  initialValues,
+} from 'types';
+import {
   Damage,
   EstateTerritory,
   Question,
@@ -20,6 +23,7 @@ import { FileUploader } from 'components/FileUploader';
 import { ErrorMessage } from 'components/ErrorMessage';
 import { RadioInput } from 'components/RadioGroup';
 
+import { schema } from './validation';
 import css from './thirdStep.module.scss';
 
 interface Props {
@@ -29,105 +33,9 @@ interface Props {
 }
 
 type TextFieldTypes =
-  | 'data.typeEstate.value'
   | 'data.estateDamage.value'
   | 'data.useHelps.value'
   | 'data.readyToSupply.value';
-
-const schema = yup.object().shape({
-  data: yup.object().shape({
-    hasEstate: yup.object().shape({
-      key: yup.string().required("Поле є обов'язковим"),
-    }),
-    estateCity: yup.string().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.string().required("Поле є обов'язковим")
-        : yup.string();
-    }),
-    estateRegion: yup.string().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.string().required("Поле є обов'язковим")
-        : yup.string();
-    }),
-    estateStreet: yup.string().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.string().required("Поле є обов'язковим")
-        : yup.string();
-    }),
-    estateTerritory: yup.object().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.object().shape({
-            key: yup.string().required("Поле є обов'язковим"),
-          })
-        : yup.object().shape({
-            key: yup.string(),
-          });
-    }),
-    typeEstate: yup.object().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.object().shape({
-            key: yup.string().required("Поле є обов'язковим"),
-            value: yup.string().when('key', ([key]) => {
-              return key === Capital.Other
-                ? yup.string().required("Поле є обов'язковим")
-                : yup.string();
-            }),
-          })
-        : yup.object();
-    }),
-    estateDamage: yup.object().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.object().shape({
-            key: yup.string().required("Поле є обов'язковим"),
-            value: yup.string().when('key', ([key]) => {
-              return key === Damage.Sold || key === Damage.Restored
-                ? yup.string().required("Поле є обов'язковим")
-                : yup.string();
-            }),
-          })
-        : yup.object();
-    }),
-    useHelps: yup.object().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.object().shape({
-            key: yup.string().required("Поле є обов'язковим"),
-            value: yup.string().when('key', ([key]) => {
-              return key === QuestionHelps.Yes
-                ? yup.string().required("Поле є обов'язковим")
-                : yup.string();
-            }),
-          })
-        : yup.object();
-    }),
-    readyToSupply: yup.object().when('hasEstate', ([hasEstate]) => {
-      return hasEstate.key === Question.Yes
-        ? yup.object().shape({
-            key: yup.string().required("Поле є обов'язковим"),
-            value: yup.string().when('key', ([key]) => {
-              return key === QuestionSupply.No
-                ? yup.string().required("Поле є обов'язковим")
-                : yup.string();
-            }),
-          })
-        : yup.object();
-    }),
-  }),
-  documents: yup.object().when('data', ([data]) => {
-    return yup.object().shape({
-      hasEstate: yup.array().when(() => {
-        return data.hasEstate.key === Question.Yes
-          ? yup.array().min(1, "Поле є обов'язковим")
-          : yup.array();
-      }),
-      estateDamage: yup.array().when(() => {
-        return data.hasEstate.key === Question.Yes &&
-          data.estateDamage.key !== Damage.NoDamage
-          ? yup.array().min(1, "Поле є обов'язковим")
-          : yup.array();
-      }),
-    });
-  }),
-});
 
 export const ThirdStep: React.FC<Props> = ({
   onSubmitStep,
@@ -145,8 +53,13 @@ export const ThirdStep: React.FC<Props> = ({
     defaultValues: values,
   });
 
-  const watchHasEstate = watch('data.hasEstate');
-  const watchEstateDamage = watch('data.estateDamage');
+  const [watchHasEstate, watchEstateDamage, watchUseHelps, watchReadyToSupply] =
+    watch([
+      'data.hasEstate',
+      'data.estateDamage',
+      'data.useHelps',
+      'data.readyToSupply',
+    ]);
 
   const handleChangeFile = (
     name: keyof FormFieldsDocuments,
@@ -176,6 +89,27 @@ export const ThirdStep: React.FC<Props> = ({
       behavior: 'smooth',
     });
   }, []);
+
+  useEffect(() => {
+    if (
+      watchUseHelps.key === QuestionHelps.No &&
+      Boolean(watchUseHelps.value)
+    ) {
+      setValue('data.useHelps.value', initialValues.data.useHelps.value);
+    }
+  }, [watchUseHelps, watchUseHelps.key, setValue]);
+
+  useEffect(() => {
+    if (
+      watchReadyToSupply.key === QuestionSupply.Yes &&
+      Boolean(watchReadyToSupply.value)
+    ) {
+      setValue(
+        'data.readyToSupply.value',
+        initialValues.data.readyToSupply.value
+      );
+    }
+  }, [watchReadyToSupply, watchReadyToSupply.key, setValue]);
 
   return (
     <div className={css.root}>
@@ -228,19 +162,15 @@ export const ThirdStep: React.FC<Props> = ({
             <hr />
             <div className={css.row}>
               <Controller
-                name="data.typeEstate.key"
+                name="data.estateTerritory.key"
                 control={control}
-                defaultValue={values?.data.typeEstate.key}
+                defaultValue={values?.data.estateTerritory.key}
                 render={({ field }) => (
                   <RadioInput
                     {...field}
-                    title="Тип нерухомого майна"
-                    options={getEnumOptions(Capital)}
-                    withOther={[Capital.Other]}
-                    inputName="data.typeEstate.value"
-                    fieldValue={values?.data.typeEstate?.value}
-                    onChangeTextField={handleChangeTextField}
-                    error={errors?.data?.typeEstate}
+                    title="Нерухомість розташована на території"
+                    options={getEnumOptions(EstateTerritory)}
+                    error={errors?.data?.estateTerritory}
                   />
                 )}
               />
@@ -310,22 +240,6 @@ export const ThirdStep: React.FC<Props> = ({
             <hr />
             <div className={css.row}>
               <Controller
-                name="data.estateTerritory.key"
-                control={control}
-                defaultValue={values?.data.estateTerritory.key}
-                render={({ field }) => (
-                  <RadioInput
-                    {...field}
-                    title="Нерухомість розташована на території"
-                    options={getEnumOptions(EstateTerritory)}
-                    error={errors?.data?.estateTerritory}
-                  />
-                )}
-              />
-            </div>
-            <hr />
-            <div className={css.row}>
-              <Controller
                 name="data.estateDamage.key"
                 control={control}
                 defaultValue={values?.data.estateDamage.key}
@@ -334,11 +248,7 @@ export const ThirdStep: React.FC<Props> = ({
                     {...field}
                     title="Поточний статус вашого нерухомого майна"
                     options={getEnumOptions(Damage)}
-                    withOther={[Damage.Sold, Damage.Restored]}
                     error={errors?.data?.estateDamage}
-                    inputName="data.estateDamage.value"
-                    fieldValue={values?.data.estateDamage?.value}
-                    onChangeTextField={handleChangeTextField}
                   />
                 )}
               />
@@ -395,7 +305,7 @@ export const ThirdStep: React.FC<Props> = ({
                     withOther={[QuestionHelps.Yes]}
                     error={errors?.data?.useHelps}
                     inputName="data.useHelps.value"
-                    fieldValue={values?.data.useHelps?.value}
+                    fieldValue={watchUseHelps.value}
                     onChangeTextField={handleChangeTextField}
                   />
                 )}
@@ -415,7 +325,7 @@ export const ThirdStep: React.FC<Props> = ({
                     withOther={[QuestionSupply.No]}
                     error={errors?.data?.readyToSupply}
                     inputName="data.readyToSupply.value"
-                    fieldValue={values?.data.readyToSupply?.value}
+                    fieldValue={watchReadyToSupply.value}
                     onChangeTextField={handleChangeTextField}
                   />
                 )}

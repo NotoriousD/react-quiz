@@ -31,7 +31,7 @@ export const fetchAuthStatus =
   };
 
 export const submitQuestionnarie =
-  (data: FormFields): AppThunk =>
+  (data: { data: FormFields, score: number }): AppThunk =>
   async (dispatch: AppDispatch, getState) => {
     const { requestId } = getState().auth;
     dispatch(setIsSubmitting(true));

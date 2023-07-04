@@ -50,19 +50,44 @@ export enum ToBeEmployedMember {
   Yes = 'Так (вкажіть, будь ласка, хто саме і вид діяльності)',
 }
 
+export enum ToBeEmployed {
+  No = 'Ні, не готовий',
+  Yes = 'Так, готовий',
+  Ready = 'Готовий створити бізнес',
+}
+
 export enum PatronageFamily {
   Yes = 'Так',
   No = 'Ні',
 }
 
 export enum Professions {
+  No = 'Немає',
   FamilyDoctor = 'Сімейний лікар',
   Pediatrician = 'ЛІкар-педіатр (сімейний)',
   Notary = 'Нотаріус',
   Programmer = 'Програміст (спеціаліст у сфері ІТ-технологій)',
   EnglishTeacher = 'Вчитель англійської мови',
-  Plumber = 'Сантехнік',
-  Seemstress = 'Професійна швачка',
+  Choreographer = 'Хореограф',
   Mechanic = 'Механізатор',
-  Electrician = 'Електрик',
+  Coach = 'Тренер',
+  Lawyer = 'Юрист',
+  Accounter = 'Бухгалтер',
+  Entrepreneur = 'ПІДПРИЄМЕЦЬ (готовий працювати чи створити робочі місця)',
+}
+
+export enum DisableGroups {
+  First = 'I (перша)',
+  Second = 'II (друга)',
+  Third = 'III (третя)',
+}
+
+export enum HugPosition {
+  No = 'Ні, не обіймав/обіймаю',
+  Yes = 'Так, обіймав/обіймаю',
+}
+
+export enum HugPositionMembers {
+  No = 'Ні, не обіймали/обіймають',
+  Yes = 'Так, обіймали/обіймають',
 }

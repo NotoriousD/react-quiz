@@ -89,12 +89,16 @@ export const API = {
     }
   },
 
-  async sendQuestionnarie(data: FormFields, requestId: string) {
+  async sendQuestionnarie(
+    data: { data: FormFields; score: number },
+    requestId: string
+  ) {
     try {
       const response = await httpClient.post(
         `/questionnaire/form/${requestId}`,
         {
-          encodeForm: Buffer.from(JSON.stringify(data)).toString('base64'),
+          encodeForm: Buffer.from(JSON.stringify(data.data)).toString('base64'),
+          score: data.score,
         }
       );
 

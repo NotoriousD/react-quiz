@@ -5,6 +5,7 @@ import React, {
   useEffect,
   forwardRef,
   useCallback,
+  useMemo,
 } from 'react';
 import cx from 'classnames';
 import Button from '@mui/material/Button';
@@ -26,7 +27,14 @@ interface FileUploaderProps {
   disabled?: boolean;
   isMultiply?: boolean;
   inputName: string;
-  onChange: (name: keyof FormFieldsDocuments, files: string | string[]) => void;
+  idFileName?: string;
+  idx?: number;
+  onChange: (
+    name: keyof FormFieldsDocuments,
+    files: string | string[],
+    fieldId?: string,
+    idx?: number
+  ) => void;
 }
 
 export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
@@ -39,6 +47,8 @@ export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
         disabled = false,
         isMultiply = false,
         inputName,
+        idFileName,
+        idx,
         onChange,
       },
       ref
@@ -55,10 +65,15 @@ export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
           const response = await API.getFiles({ name: inputName, requestId });
           if (response?.data) {
             setFileList(response.data);
-            onChange(name as keyof FormFieldsDocuments, response.data);
+            onChange(
+              name as keyof FormFieldsDocuments,
+              response.data,
+              idFileName,
+              idx
+            );
           }
         }
-      }, [requestId, inputName, name, onChange]);
+      }, [requestId, inputName, name, onChange, idFileName, idx]);
 
       const onUploadFile = async (data: FormData) => {
         if (requestId) {
@@ -82,7 +97,9 @@ export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
           const imageFile = e.target.files;
           Object.keys(imageFile).forEach((i: any) => {
             const file = imageFile[i];
-            const fileName = fileList.includes(file.name)
+            const fileName = idFileName
+              ? idFileName
+              : fileList.includes(file.name)
               ? `(1)${file.name}`
               : file.name;
             const fileReader = new FileReader();
@@ -121,6 +138,13 @@ export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
         }
       };
 
+      const getFileNameById = useMemo(() => {
+        if (Boolean(fileList.length) && idFileName) {
+          return fileList.find((name: string) => name.includes(idFileName));
+        }
+        return undefined;
+      }, [fileList, idFileName]);
+
       useEffect(() => {
         getFiles();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,10 +171,22 @@ export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
             ref={inputFile}
             onChange={handleSetImage}
           />
-          <ol className={css.files}>
+          <ol className={css.files} data-testid="list">
+            {idFileName && getFileNameById && (
+              <li data-testid="listitem">
+                {getFileNameById}
+                <span
+                  className={css.remove}
+                  onClick={() => onRemove(getFileNameById)}
+                >
+                  +
+                </span>
+              </li>
+            )}
             {Boolean(fileList.length) &&
+              !idFileName &&
               fileList.map((file) => (
-                <li key={file}>
+                <li key={file} data-testid="listitem">
                   {file}
                   <span className={css.remove} onClick={() => onRemove(file)}>
                     +

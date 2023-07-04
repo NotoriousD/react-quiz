@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import cx from 'classnames';
 
 import { Family, FormFieldValues, FormFieldsDocuments } from 'types';
@@ -10,8 +9,8 @@ import { Family, FormFieldValues, FormFieldsDocuments } from 'types';
 import { ErrorMessage } from 'components/ErrorMessage';
 import { FileUploader } from 'components/FileUploader';
 
+import { schema } from './validation';
 import { FormGenerator } from './modules/FormGenerator';
-
 import css from './secondStep.module.scss';
 
 interface Props {
@@ -20,26 +19,14 @@ interface Props {
   values: FormFieldValues;
 }
 
-const schema = yup.object().shape({
-  data: yup.object().shape({
-    family: yup
-      .array()
-      .min(
-        1,
-        'Необхідно додати інформацію про членів домогосподарства, що будуть проживати разом із заявником'
-      ),
-  }),
-  documents: yup.object().shape({
-    family: yup.array(),
-  }),
-});
-
 export const SecondStep: React.FC<Props> = ({
   onSubmitStep,
   onBack,
   values,
 }) => {
-  const [members, setMembers] = useState<Family[]>(values?.data.family || []);
+  const [members, setMembers] = useState<Family[]>(
+    values?.data.family.data || []
+  );
   const {
     handleSubmit,
     control,
@@ -51,32 +38,28 @@ export const SecondStep: React.FC<Props> = ({
     defaultValues: values,
   });
 
-  const handleChangeFile = (files: string[]) => {
-    setValue('documents.family', files);
-  };
-
   const onChangeFile = (
     name: keyof FormFieldsDocuments,
     files: string | string[]
   ) => {
     //@ts-ignore
-    handleChangeFile(files);
+    setValue(name, files);
   };
 
   const handleAddMember = (data: Family) => {
-    const members = getValues()?.data?.family;
+    const members = getValues()?.data?.family.data;
     if (members) {
-      setValue('data.family', [...members, data]);
+      setValue('data.family.data', [...members, data]);
       setMembers([...members, data]);
     }
   };
 
   const removeMember = (idx: number) => {
-    const members = getValues()?.data?.family;
+    const members = getValues()?.data?.family.data;
 
     if (members) {
       const newMemebers = members.filter((_, index) => index !== idx);
-      setValue('data.family', newMemebers);
+      setValue('data.family.data', newMemebers);
       setMembers(newMemebers);
     }
   };
@@ -99,6 +82,91 @@ export const SecondStep: React.FC<Props> = ({
 
   return (
     <div className={css.root}>
+      <div className={css.row}>
+        <Controller
+          name="documents.avgIncomeBefore"
+          control={control}
+          render={({ field }) => (
+            <FileUploader
+              {...field}
+              label={
+                'Сума вашого середнього місячного доходу (в гривнях) до 22 лютого 2022'
+              }
+              onChange={onChangeFile}
+              inputName="avgIncomeBefore"
+            >
+              <ul>
+                Довідка про доходи:
+                <li>
+                  підтвердження розміру чистого доходу за місяць, що передує
+                  місяцю подання заяви на публічне запрошення;
+                </li>
+                <li>
+                  довідка з Пенсійного фонду України або іншої компетентної
+                  державної установи України про надходження пенсійних платежів
+                  Заявнику або членам його родини у випадку, якщо вони є
+                  пенсіонерами або особами, що отримують пенсійне забезпечення
+                  від держави;
+                </li>
+                <li>
+                  документ про те, що Заявник має статус безробітного та
+                  перебуває на обліку в національних центрах зайнятості.
+                </li>
+              </ul>
+            </FileUploader>
+          )}
+        />
+        {errors?.documents?.avgIncomeBefore && (
+          <ErrorMessage
+            message={String(errors?.documents?.avgIncomeBefore.message)}
+          />
+        )}
+      </div>
+      <hr />
+      <div className={css.row}>
+        <Controller
+          name="documents.avgIncomeAfter"
+          control={control}
+          render={({ field }) => (
+            <FileUploader
+              {...field}
+              label={
+                'Сума вашого середнього місячного доходу заявника (в гривнях) після 22 лютого 2022'
+              }
+              onChange={onChangeFile}
+              inputName="avgIncomeAfter"
+            >
+              <ul>
+                Довідка про доходи:
+                <li>
+                  підтвердження розміру чистого доходу за місяць, що передує
+                  місяцю подання заяви на публічне запрошення;
+                </li>
+                <li>
+                  довідка з Пенсійного фонду України або іншої компетентної
+                  державної установи України про надходження пенсійних платежів
+                  Заявнику або членам його родини у випадку, якщо вони є
+                  пенсіонерами або особами, що отримують пенсійне забезпечення
+                  від держави;
+                </li>
+                <li>
+                  документ про те, що Заявник має статус безробітного та
+                  перебуває на обліку в національних центрах зайнятості.
+                </li>
+              </ul>
+            </FileUploader>
+          )}
+        />
+        {errors?.documents?.avgIncomeAfter && (
+          <ErrorMessage
+            message={String(errors?.documents?.avgIncomeAfter.message)}
+          />
+        )}
+      </div>
+      <hr />
+      <h3 className={css.title}>
+        Члени домогосподарства, що будуть проживати разом з вами
+      </h3>
       <div className={css.errors}>
         {errors?.data?.family && (
           <ErrorMessage message={String(errors?.data?.family.message)} />
@@ -112,14 +180,25 @@ export const SecondStep: React.FC<Props> = ({
             <th>Тип відносин із заявником</th>
             <th>Вік</th>
             <th>Соціальний стан</th>
-            <th>Сума середнього місячного доходу</th>
+            <th>Середній місячний дохід до 22 лютого 2022</th>
+            <th>Середній місячний дохід після 22 лютого 2022</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           {Boolean(members.length) ? (
             members.map(
-              ({ pib, relationship, age, socialStatus, avgIncome }, idx) => (
+              (
+                {
+                  pib,
+                  relationship,
+                  age,
+                  socialStatus,
+                  avgIncomeBefore,
+                  avgIncomeAfter,
+                },
+                idx
+              ) => (
                 <tr key={idx}>
                   <td>{idx + 1}</td>
                   <td>{pib}</td>
@@ -130,7 +209,8 @@ export const SecondStep: React.FC<Props> = ({
                       ? socialStatus.value
                       : socialStatus.key}
                   </td>
-                  <td>{avgIncome}</td>
+                  <td>{avgIncomeBefore}</td>
+                  <td>{avgIncomeAfter}</td>
                   <td>
                     <span onClick={() => removeMember(idx)}>+</span>
                   </td>

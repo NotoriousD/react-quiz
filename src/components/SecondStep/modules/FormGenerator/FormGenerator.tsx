@@ -35,18 +35,26 @@ const schema = yup.object().shape({
   socialStatus: yup.object().shape({
     key: yup.string().required("Поле є обов'язковим"),
   }),
-  avgIncome: yup.number().required("Поле є обов'язковим").moreThan(-1, 'dqw'),
+  avgIncomeBefore: yup
+    .number()
+    .required("Поле є обов'язковим")
+    .moreThan(-1, 'Поле не може бути меньше 0'),
+  avgIncomeAfter: yup
+    .number()
+    .required("Поле є обов'язковим")
+    .moreThan(-1, 'Поле не може бути меньше 0'),
 });
 
 const initialValues: Family = {
   pib: '',
   relationship: Relationship.Father,
-  age: undefined,
+  age: 0,
   socialStatus: {
     key: '',
     value: '',
   },
-  avgIncome: undefined,
+  avgIncomeBefore: 0,
+  avgIncomeAfter: 0,
 };
 
 export const FormGenerator: React.FC<Props> = ({ onSubmitStep }) => {
@@ -150,21 +158,40 @@ export const FormGenerator: React.FC<Props> = ({ onSubmitStep }) => {
         </div>
         <div className={css.row}>
           <Controller
-            name="avgIncome"
+            name="avgIncomeBefore"
             control={control}
-            defaultValue={values?.avgIncome}
+            defaultValue={values?.avgIncomeBefore}
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Середній місячний дохід"
+                label="Середній місячний дохід (в гривнях) до 22 лютого 2022"
                 size="small"
                 type="number"
                 className={css.textField}
               />
             )}
           />
-          {errors?.avgIncome && (
-            <ErrorMessage message={String(errors?.avgIncome.message)} />
+          {errors?.avgIncomeBefore && (
+            <ErrorMessage message={String(errors?.avgIncomeBefore.message)} />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="avgIncomeAfter"
+            control={control}
+            defaultValue={values?.avgIncomeAfter}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Середній місячний дохід (в гривнях) після 22 лютого 2022"
+                size="small"
+                type="number"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.avgIncomeAfter && (
+            <ErrorMessage message={String(errors?.avgIncomeAfter.message)} />
           )}
         </div>
         <div className={css.row}>

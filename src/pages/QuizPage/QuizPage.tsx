@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { CSSTransition } from 'react-transition-group';
 
@@ -20,6 +20,7 @@ import { submitQuestionnarie } from 'store/auth/thunk';
 import { selectAuthData } from 'store/auth/selectors';
 
 export const QuizPage: React.FC = () => {
+  const [totalScore, setTotalScore] = useState<number>(0);
   const dispatch = useAppDispatch();
   const { requestId } = useAppSelector(selectAuthData);
   const { getValues, setValue } = useForm<FormFieldValues>({
@@ -28,20 +29,24 @@ export const QuizPage: React.FC = () => {
 
   const { step: currentStep, goNextStep, goPrevStep } = useStepper();
 
-  const handleChangeStep = (data: Partial<FormFieldValues>) => {
+  const handleChangeStep = (
+    data: Partial<FormFieldValues>,
+    scores: number = 0
+  ) => {
     Object.entries(data).forEach(([key, value]) => {
       setValue(key as keyof FormFieldValues, value);
     });
+    setTotalScore(totalScore + scores);
+    console.log(getValues());
     goNextStep();
   };
 
-  const handleSubmitForm = async (data: FormFieldValues) => {
+  const handleSubmitForm = async (data: FormFieldValues, scores: number) => {
     const body = {
-      ...getValues().data,
-      ...data,
+      data: data.data,
+      score: scores,
     };
     if (requestId) {
-      
       dispatch(submitQuestionnarie(body));
     }
   };

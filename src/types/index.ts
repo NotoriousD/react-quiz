@@ -1,23 +1,40 @@
 import { Relationship } from './relationship';
 import { SocialStatuses } from './socialStatus';
-import { EstateType, Question, EstateTerritory, Damage } from './capital';
+import {
+  EstateType,
+  Question,
+  EstateTerritory,
+  Damage,
+  QuestionHelps,
+  QuestionSupply,
+} from './capital';
 import { RadioValue } from './radio';
 import {
   DisabledMember,
   DiseasesMember,
+  HugPosition,
+  HugPositionMembers,
   IllegitimateMember,
   PositionMember,
+  Professions,
   QuestionInjured,
   QuestionSingleParent,
+  ToBeEmployed,
   ToBeEmployedMember,
 } from './additional';
 
 export interface Family {
   pib: string;
   relationship: Relationship;
-  age: number | undefined;
-  socialStatus: RadioValue<SocialStatuses>;
-  avgIncome: number | undefined;
+  age: number;
+  socialStatus: RadioValue<SocialStatuses, any>;
+  avgIncomeBefore: number;
+  avgIncomeAfter: number;
+}
+
+export interface ChoosenMember {
+  name: string;
+  value: string;
 }
 
 export enum AuthirizationStatuses {
@@ -39,7 +56,8 @@ export const statuses = {
 export interface FormFieldsDocuments {
   pib: string[];
   rnokpp: string[];
-  avgIncome: string[];
+  avgIncomeBefore: string[];
+  avgIncomeAfter: string[];
   family: string[];
   pregnant: string[];
   violence: string[];
@@ -48,9 +66,14 @@ export interface FormFieldsDocuments {
   injured: string[];
   singleParent: string[];
   disabledMember: string[];
+  toBeEmployed: string[];
   illegitimate: string[];
   diseases: string[];
   position: string[];
+  familyPosition: string[];
+  hugPosition: string[];
+  hugFamilyPosition: string[];
+  toBeEmployedMembers: string[];
 }
 
 export interface FormFields {
@@ -59,29 +82,39 @@ export interface FormFields {
   addressStreet: string;
   addressBuilding: string;
   addressFlat: string;
-  family: Family[];
-  hasEstate: RadioValue<Question>;
-  typeEstate: RadioValue<EstateType>;
+  socialStatus: RadioValue<SocialStatuses, string>;
+  avgIncomeBefore: number;
+  avgIncomeAfter: number;
+  family: {
+    data: Family[];
+    score: number;
+  };
+  hasEstate: RadioValue<Question, any>;
   estateRegion: string;
   estateCity: string;
   estateStreet: string;
-  estateTerritory: RadioValue<EstateTerritory>;
-  estateDamage: RadioValue<Damage>;
-  useHelps: RadioValue<Question>;
-  readyToSupply: RadioValue<Question>;
-  injured: RadioValue<QuestionInjured>;
+  estateTerritory: RadioValue<EstateTerritory, any>;
+  estateDamage: RadioValue<Damage, any>;
+  useHelps: RadioValue<QuestionHelps, string>;
+  readyToSupply: RadioValue<QuestionSupply, string>;
+  injured: RadioValue<QuestionInjured, any>;
   pregnant: {
     key: string | undefined;
   };
-  singleParent: RadioValue<QuestionSingleParent>;
-  disabledMember: RadioValue<DisabledMember>;
-  illegitimate: RadioValue<IllegitimateMember>;
-  diseases: RadioValue<DiseasesMember>;
+  singleParent: RadioValue<QuestionSingleParent, any>;
+  disabledMember: RadioValue<DisabledMember, ChoosenMember>;
+  illegitimate: RadioValue<IllegitimateMember, ChoosenMember>;
+  diseases: RadioValue<DiseasesMember, ChoosenMember>;
   violence: {
     key: string | undefined;
+    score?: number;
   };
-  position: RadioValue<PositionMember>;
-  toBeEmployed: RadioValue<ToBeEmployedMember>;
+  position: RadioValue<Professions, any>;
+  hugPosition: RadioValue<HugPosition, Professions>;
+  familyPosition: RadioValue<PositionMember, ChoosenMember>;
+  hugFamilyPosition: RadioValue<HugPositionMembers, ChoosenMember>;
+  toBeEmployed: RadioValue<ToBeEmployed, any>;
+  toBeEmployedMembers: RadioValue<ToBeEmployed, any>;
   patronage: string | undefined;
   additionalMessage: string;
 }
@@ -98,7 +131,16 @@ export const initialValues: FormFieldValues = {
     addressStreet: '',
     addressBuilding: '',
     addressFlat: '',
-    family: [],
+    socialStatus: {
+      key: '',
+      value: '',
+    },
+    avgIncomeAfter: 0,
+    avgIncomeBefore: 0,
+    family: {
+      data: [],
+      score: 0,
+    },
     estateCity: '',
     estateRegion: '',
     estateStreet: '',
@@ -108,13 +150,8 @@ export const initialValues: FormFieldValues = {
     hasEstate: {
       key: '',
     },
-    typeEstate: {
-      key: '',
-      value: '',
-    },
     estateDamage: {
       key: '',
-      value: '',
     },
     useHelps: {
       key: '',
@@ -126,7 +163,7 @@ export const initialValues: FormFieldValues = {
     },
     injured: {
       key: '',
-      value: '',
+      value: [],
     },
     pregnant: {
       key: undefined,
@@ -137,26 +174,54 @@ export const initialValues: FormFieldValues = {
     },
     disabledMember: {
       key: '',
-      value: '',
+      value: {
+        name: '',
+        value: '',
+      },
     },
     illegitimate: {
       key: '',
-      value: '',
+      value: {
+        name: '',
+        value: '',
+      },
     },
     diseases: {
       key: '',
-      value: '',
+      value: {
+        name: '',
+        value: '',
+      },
     },
     violence: {
       key: '',
     },
     position: {
       key: '',
-      value: [],
+    },
+    hugPosition: {
+      key: '',
+      value: undefined,
+    },
+    familyPosition: {
+      key: '',
+      value: {
+        name: '',
+        value: '',
+      },
+    },
+    hugFamilyPosition: {
+      key: '',
+      value: {
+        name: '',
+        value: '',
+      },
     },
     toBeEmployed: {
       key: '',
-      value: [],
+    },
+    toBeEmployedMembers: {
+      key: '',
     },
     patronage: undefined,
     additionalMessage: '',
@@ -164,7 +229,8 @@ export const initialValues: FormFieldValues = {
   documents: {
     pib: [],
     rnokpp: [],
-    avgIncome: [],
+    avgIncomeAfter: [],
+    avgIncomeBefore: [],
     family: [],
     pregnant: [],
     violence: [],
@@ -175,7 +241,12 @@ export const initialValues: FormFieldValues = {
     disabledMember: [],
     illegitimate: [],
     diseases: [],
+    toBeEmployed: [],
     position: [],
+    familyPosition: [],
+    hugPosition: [],
+    hugFamilyPosition: [],
+    toBeEmployedMembers: [],
   },
 };
 

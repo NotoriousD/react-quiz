@@ -1,4 +1,5 @@
-export interface RadioValue<T> {
+export interface RadioValue<T, D> {
   key: T | '';
-  value?: string | any;
+  value?: D;
+  score?: number;
 }

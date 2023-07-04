@@ -1,15 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 
-import { FormFieldValues, FormFieldsDocuments } from 'types';
+import {
+  FormFieldValues,
+  FormFieldsDocuments,
+  getEnumOptions,
+  initialValues,
+} from 'types';
+import { SocialStatuses } from 'types/socialStatus';
 
 import { ErrorMessage } from 'components/ErrorMessage';
 import { FileUploader } from 'components/FileUploader';
+import { RadioInput } from 'components/RadioGroup';
 
+import { schema } from './validation';
 import css from './firstStep.module.scss';
 
 interface Props {
@@ -17,32 +24,19 @@ interface Props {
   values: FormFieldValues;
 }
 
-const schema = yup.object().shape({
-  data: yup.object().shape({
-    addressRegion: yup.string().required("Поле є обов'язковим"),
-    addressSettlement: yup.string().required("Поле є обов'язковим"),
-    addressStreet: yup.string().required("Поле є обов'язковим"),
-    addressBuilding: yup.string().required("Поле є обов'язковим"),
-    addressFlat: yup.string().required("Поле є обов'язковим"),
-  }),
-  documents: yup.object().shape({
-    pib: yup.array().min(1, "Поле є обов'язковим"),
-    rnokpp: yup.array().min(1, "Поле є обов'язковим"),
-    avgIncome: yup.array().min(1, "Поле є обов'язковим"),
-  }),
-});
-
 export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
   const {
     handleSubmit,
     control,
     formState: { errors },
     setValue,
-    getValues,
+    watch,
   } = useForm<FormFieldValues>({
     resolver: yupResolver(schema),
     defaultValues: values,
   });
+
+  const watchSocialStatus = watch('data.socialStatus');
 
   const handleChangeFile = (
     name: keyof FormFieldsDocuments,
@@ -60,7 +54,23 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
     handleChangeFile(key, files);
   };
 
-  console.log(getValues());
+  const handleChangeTextField = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setValue('data.socialStatus.value', event.target.value);
+  };
+
+  useEffect(() => {
+    if (
+      watchSocialStatus.key !== SocialStatuses.Other &&
+      Boolean(watchSocialStatus.value)
+    ) {
+      setValue(
+        'data.socialStatus.value',
+        initialValues.data.socialStatus.value
+      );
+    }
+  }, [watchSocialStatus, watchSocialStatus.key, setValue]);
 
   return (
     <div className={css.root}>
@@ -211,41 +221,22 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
         <hr />
         <div className={css.row}>
           <Controller
-            name="documents.avgIncome"
+            name="data.socialStatus.key"
             control={control}
+            defaultValue={values?.data?.socialStatus?.key}
             render={({ field }) => (
-              <FileUploader
+              <RadioInput
                 {...field}
-                label={'Сума середнього місячного доходу заявника (в гривнях)'}
-                onChange={onChangeFile}
-                inputName="avgIncome"
-              >
-                <ul>
-                  Довідка про доходи:
-                  <li>
-                    підтвердження розміру чистого доходу за місяць, що передує
-                    місяцю подання заяви на публічне запрошення;
-                  </li>
-                  <li>
-                    довідка з Пенсійного фонду України або іншої компетентної
-                    державної установи України про надходження пенсійних
-                    платежів Заявнику або членам його родини у випадку, якщо
-                    вони є пенсіонерами або особами, що отримують пенсійне
-                    забезпечення від держави;
-                  </li>
-                  <li>
-                    документ про те, що Заявник має статус безробітного та
-                    перебуває на обліку в національних центрах зайнятості.
-                  </li>
-                </ul>
-              </FileUploader>
+                fieldValue={values?.data?.socialStatus.value}
+                withOther={[SocialStatuses.Other]}
+                title="Соціальний стан"
+                options={getEnumOptions(SocialStatuses)}
+                inputName="socialStatus.value"
+                onChangeTextField={handleChangeTextField}
+                error={errors?.data?.socialStatus}
+              />
             )}
           />
-          {errors?.documents?.avgIncome && (
-            <ErrorMessage
-              message={String(errors?.documents?.avgIncome.message)}
-            />
-          )}
         </div>
         <div className={css.row}>
           <Button

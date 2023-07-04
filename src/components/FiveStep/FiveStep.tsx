@@ -10,6 +10,7 @@ import cx from 'classnames';
 import { FormFieldValues } from 'types';
 import { useAppSelector } from 'store';
 import { selectAuthData } from 'store/auth/selectors';
+import { computingScores } from 'helpers/scores';
 
 import { ErrorMessage } from 'components/ErrorMessage';
 import { Loader } from 'components/Loader';
@@ -17,7 +18,7 @@ import { Loader } from 'components/Loader';
 import css from './fiveStep.module.scss';
 
 interface Props {
-  onSubmitStep: (data: FormFieldValues) => void;
+  onSubmitStep: (data: FormFieldValues, scores: number) => void;
   onBack: () => void;
   values: FormFieldValues;
 }
@@ -48,25 +49,29 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
     window.location.href = 'https://help-ukraine.org.ua/';
   };
 
-  useEffect(() => {
-    if (isSubmitted && !timer.current) {
-      timer.current = setTimeout(() => {
-        window.location.href = 'https://help-ukraine.org.ua/';
-      }, 3000);
-    }
+  // useEffect(() => {
+  //   if (isSubmitted && !timer.current) {
+  //     timer.current = setTimeout(() => {
+  //       window.location.href = 'https://help-ukraine.org.ua/';
+  //     }, 3000);
+  //   }
 
-    return () => {
-      if (timer.current) {
-        clearTimeout(timer.current);
-      }
-    };
-  }, [isSubmitted, timer]);
+  //   return () => {
+  //     if (timer.current) {
+  //       clearTimeout(timer.current);
+  //     }
+  //   };
+  // }, [isSubmitted, timer]);
 
-  console.log(isSubmitted);
+  const handleSubmitForm = (data: FormFieldValues) => {
+    const { newData, totalScore } = computingScores(data);
+    console.log(newData);
+    onSubmitStep(newData, totalScore);
+  };
 
   return (
     <div className={css.root}>
-      <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
+      <form onSubmit={handleSubmit(handleSubmitForm)} className={css.form}>
         <div className={css.title}>
           Місце для додаткової інформації, яка на думку заявника, може надати
           йому перевагу у відборі на надання житла в Новобасанській
