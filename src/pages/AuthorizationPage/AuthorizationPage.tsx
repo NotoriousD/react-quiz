@@ -2,11 +2,12 @@ import React, { useEffect, useCallback, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
+import { useTimer } from 'react-timer-hook';
 
 import { useAppDispatch, useAppSelector } from 'store';
 import { selectAuthData } from 'store/auth/selectors';
 import { authorization } from 'store/auth/thunk';
-import { AuthirizationStatuses, statuses } from 'types';
+import { AuthirizationStatuses } from 'types';
 
 import { useWindow } from 'hooks/useWindow';
 
@@ -20,6 +21,9 @@ export const AuthorizationPage: React.FC = () => {
   const { isMobile } = useWindow();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const time = new Date();
+  time.setSeconds(time.getSeconds() + 179)
+  const { seconds, minutes, restart } = useTimer({ expiryTimestamp: time, })
 
   const handleOpenLink = useCallback(() => {
     setIsUrlUsed(true);
@@ -33,6 +37,9 @@ export const AuthorizationPage: React.FC = () => {
     if (isMobile && deepLink) {
       setIsUrlUsed(false);
     }
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 179)
+    restart(time)
   };
 
   useEffect(() => {
@@ -53,7 +60,7 @@ export const AuthorizationPage: React.FC = () => {
           {isMobile ? (
             <div className={css.container}>
               <div className={css.title}>
-                Пройдіть верефікацію через додаток Дія
+                Пройдіть верефікацію через застосунок Дія
               </div>
               <div className={css.btnWrapper}>
                 <Button
@@ -64,7 +71,7 @@ export const AuthorizationPage: React.FC = () => {
                   onClick={handleOpenLink}
                   disabled={isUrlUsed}
                 >
-                  Перейти до додатку Дія
+                  Перейти до застосунку Дія
                 </Button>
                 <Button
                   variant="outlined"
@@ -73,24 +80,25 @@ export const AuthorizationPage: React.FC = () => {
                   type="button"
                   onClick={handleGenerateNewLink}
                 >
-                  Сгенерувати нове посилання
+                  Згенерувати нове посилання
                 </Button>
               </div>
-              {!!status && statuses[status]}
               {status === AuthirizationStatuses.Initialized ||
                 (status === AuthirizationStatuses.Processing && <Loader />)}
             </div>
           ) : (
             <div className={css.container}>
               <div className={css.title}>
-                Відскануйте QR через додаток Дія та пройдіть верифікацію
+                Зчитайте QR-код сканером у застосунку Дія й пройдіть верифікацію
               </div>
               <div className={css.qr}>
                 <QRCode value={deepLink} />
               </div>
+              <div className={css.timer}>
+                Термін дії QR-коду: <strong>{minutes} : {seconds}</strong>
+              </div>
               {status === AuthirizationStatuses.Initialized ||
                 (status === AuthirizationStatuses.Processing && <Loader />)}
-              {!!status && statuses[status]}
               <Button
                 variant="contained"
                 className={css.btn}

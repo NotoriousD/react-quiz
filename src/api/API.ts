@@ -74,10 +74,10 @@ export const API = {
     }
   },
 
-  async removeFile({ name, requestId }: { name: string; requestId: string }) {
+  async removeFile({ inputName, fileName, requestId }: { inputName: string; fileName: string; requestId: string }) {
     try {
       const response = await httpClient.delete(
-        `/questionnaire/image/${requestId}/${name}`
+        `/questionnaire/image/${requestId}/${inputName}/${fileName}`
       );
 
       if (response.data) {

@@ -11,12 +11,52 @@
     grid-gap: 20px;
 }
 
-.row {
-    margin-bottom: 20px;
+// .row {
+//     margin-bottom: 20px;
+// }
+
+.fieldBlock {
+    display: grid;
+    grid-gap: 14px;
+}
+
+.fieldRow {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+}
+
+.selectWrapper {
+    width: 100%;
+}
+
+.colMargin {
+    display: grid;
+    grid-gap: 10px;
 }
 
 .btn {
     width: 100%;
+}
+
+.fieldWrapper {
+    display: grid;
+    grid-gap: 15px;
+}
+
+.fieldHeader {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.removeMember {
+    display: block;
+    font-size: 18px;
+    color: red;
+    cursor: pointer;
+    margin-right: 5px;
+    text-align: center;
+    line-height: 24px;
 }
 
 .text {
@@ -32,9 +72,9 @@ table, th, td {
     margin-bottom: 10px;
 }
 
-hr {
-    margin-bottom: 20px;
-}
+// hr {
+//     margin-bottom: 20px;
+// }
 
 .title {
     font-size: 1rem;
@@ -60,6 +100,10 @@ hr {
         display: inline-block;
         cursor: pointer;
     }
+}
+
+.rowFile {
+    margin-top: 12px;
 }
 
 .actions {

@@ -23,11 +23,14 @@ import {
 
 export interface Family {
   pib: string;
+  pibDoc?: string[];
   relationship: Relationship;
   age: number;
   socialStatus: RadioValue<SocialStatuses, any>;
   avgIncomeBefore: number;
+  avgIncomeBeforeDoc?: string[];
   avgIncomeAfter: number;
+  avgIncomeAfterDoc?: string[];
 }
 
 export interface ChoosenMember {
@@ -75,14 +78,31 @@ export interface FormFieldsDocuments {
 }
 
 export interface FormFields {
+  pib: string;
+  birthday: string | null;
+  age: number;
+  idNumber: string;
+  issue: string;
+  issueDate: string | null;
+  issueCity: string;
+  phone: string;
+  rnokpp: string;
+  vpoNumber: string;
+  vpoDate: string;
   addressRegion: string;
   addressSettlement: string;
   addressStreet: string;
   addressBuilding: string;
   addressFlat: string;
   socialStatus: RadioValue<SocialStatuses, string>;
-  avgIncomeBefore: number;
-  avgIncomeAfter: number;
+  avgIncomeBefore: {
+    value: number;
+    score: number;
+  };
+  avgIncomeAfter: {
+    value: number;
+    score: number;
+  };
   family: {
     data: Family[];
     score: number;
@@ -124,6 +144,17 @@ export interface FormFieldValues {
 
 export const initialValues: FormFieldValues = {
   data: {
+    pib: '',
+    birthday: null,
+    age: 0,
+    idNumber: '',
+    issue: '',
+    issueDate: null,
+    issueCity: '',
+    phone: '',
+    rnokpp: '',
+    vpoNumber: '',
+    vpoDate: '',
     addressRegion: '',
     addressSettlement: '',
     addressStreet: '',
@@ -133,10 +164,29 @@ export const initialValues: FormFieldValues = {
       key: '',
       value: '',
     },
-    avgIncomeAfter: 0,
-    avgIncomeBefore: 0,
+    avgIncomeAfter: {
+      value: 0,
+      score: 0,
+    },
+    avgIncomeBefore: {
+      value: 0,
+      score: 0,
+    },
     family: {
-      data: [],
+      data: [{
+        pib: '',
+        pibDoc: [],
+        relationship: Relationship.Father,
+        age: 0,
+        socialStatus: {
+          key: SocialStatuses.Employee,
+          value: '',
+        },
+        avgIncomeBefore: 0,
+        avgIncomeBeforeDoc: [],
+        avgIncomeAfter: 0,
+        avgIncomeAfterDoc: [],
+      }],
       score: 0,
     },
     estateCity: '',

@@ -17,6 +17,7 @@ import { ErrorMessage } from 'components/ErrorMessage';
 import { RadioInput } from 'components/RadioGroup';
 
 import css from './formGenerator.module.scss';
+import { FileUploader } from 'components/FileUploader';
 
 interface Props {
   onSubmitStep: (data: Family) => void;
@@ -24,6 +25,7 @@ interface Props {
 
 const schema = yup.object().shape({
   pib: yup.string().required("Поле є обов'язковим"),
+  pibDoc: yup.array().min(1, "Необхідно додати файл"),
   relationship: yup.string().required("Поле є обов'язковим"),
   age: yup
     .number()
@@ -39,14 +41,17 @@ const schema = yup.object().shape({
     .number()
     .required("Поле є обов'язковим")
     .moreThan(-1, 'Поле не може бути меньше 0'),
+  avgIncomeBeforeDoc: yup.array().min(1, "Необхідно додати файл"),
   avgIncomeAfter: yup
     .number()
     .required("Поле є обов'язковим")
     .moreThan(-1, 'Поле не може бути меньше 0'),
+  avgIncomeAfterDoc: yup.array().min(1, "Необхідно додати файл"),
 });
 
 const initialValues: Family = {
   pib: '',
+  pibDoc: [],
   relationship: Relationship.Father,
   age: 0,
   socialStatus: {
@@ -54,7 +59,9 @@ const initialValues: Family = {
     value: '',
   },
   avgIncomeBefore: 0,
+  avgIncomeBeforeDoc: [],
   avgIncomeAfter: 0,
+  avgIncomeAfterDoc: [],
 };
 
 export const FormGenerator: React.FC<Props> = ({ onSubmitStep }) => {
@@ -79,6 +86,14 @@ export const FormGenerator: React.FC<Props> = ({ onSubmitStep }) => {
   const handleSubmitForm = (data: Family) => {
     onSubmitStep(data);
     reset();
+  };
+
+  const onChangeFile = (
+    name: any,
+    files: string | string[]
+  ) => {
+    //@ts-ignore
+    setValue(name, files);
   };
 
   const handleChangeTextField = (
@@ -108,6 +123,43 @@ export const FormGenerator: React.FC<Props> = ({ onSubmitStep }) => {
             <ErrorMessage message={String(errors?.pib.message)} />
           )}
         </div>
+        <div className={css.row}>
+        <Controller
+          name="pibDoc"
+          control={control}
+          render={({ field }) => (
+            <FileUploader
+              {...field}
+              onChange={onChangeFile}
+              inputName="avgIncomeAfter"
+            >
+              <ul>
+                Довідка про доходи:
+                <li>
+                  підтвердження розміру чистого доходу за місяць, що передує
+                  місяцю подання заяви на публічне запрошення;
+                </li>
+                <li>
+                  довідка з Пенсійного фонду України або іншої компетентної
+                  державної установи України про надходження пенсійних платежів
+                  Заявнику або членам його родини у випадку, якщо вони є
+                  пенсіонерами або особами, що отримують пенсійне забезпечення
+                  від держави;
+                </li>
+                <li>
+                  документ про те, що Заявник має статус безробітного та
+                  перебуває на обліку в національних центрах зайнятості.
+                </li>
+              </ul>
+            </FileUploader>
+          )}
+        />
+        {errors?.avgIncomeAfterDoc && (
+          <ErrorMessage
+            message={String(errors?.avgIncomeAfterDoc.message)}
+          />
+        )}
+      </div>
         <div className={css.row}>
           <Controller
             name="relationship"

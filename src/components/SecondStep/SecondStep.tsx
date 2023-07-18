@@ -1,17 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useEffect, useCallback } from 'react';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 import { yupResolver } from '@hookform/resolvers/yup';
 import cx from 'classnames';
+import { BsTrash } from 'react-icons/bs';
 
-import { Family, FormFieldValues, FormFieldsDocuments } from 'types';
+import { Family, FormFieldValues, FormFieldsDocuments, getEnumOptions } from 'types';
+import { Relationship } from 'types/relationship';
+import { SocialStatuses } from 'types/socialStatus';
 
 import { ErrorMessage } from 'components/ErrorMessage';
 import { FileUploader } from 'components/FileUploader';
 
 import { schema } from './validation';
-import { FormGenerator } from './modules/FormGenerator';
 import css from './secondStep.module.scss';
+import { useAppSelector } from 'store';
+import { selectAuthData } from 'store/auth/selectors';
+import { API } from 'api/API';
 
 interface Props {
   onSubmitStep: (data: Partial<FormFieldValues>) => void;
@@ -19,23 +29,48 @@ interface Props {
   values: FormFieldValues;
 }
 
+const fileNames = ['pibDoc', 'avgIncomeBeforeDoc', 'avgIncomeAfterDoc'];
+
+const generateDefaultMember = (): Family => ({
+  pib: '',
+  pibDoc: [],
+  relationship: Relationship.Father,
+  age: 0,
+  socialStatus: {
+    key: '',
+    value: '',
+  },
+  avgIncomeBefore: 0,
+  avgIncomeBeforeDoc: [],
+  avgIncomeAfter: 0,
+  avgIncomeAfterDoc: [],
+});
+
 export const SecondStep: React.FC<Props> = ({
   onSubmitStep,
   onBack,
   values,
 }) => {
-  const [members, setMembers] = useState<Family[]>(
-    values?.data.family.data || []
-  );
+  const { requestId } = useAppSelector(selectAuthData);
+
   const {
     handleSubmit,
     control,
     formState: { errors },
     setValue,
+    register,
+    watch,
     getValues,
   } = useForm<FormFieldValues>({
     resolver: yupResolver(schema),
     defaultValues: values,
+  });
+
+  const items = watch('data.family');
+
+  const { append, remove, fields } = useFieldArray({
+    control,
+    name: 'data.family.data',
   });
 
   const onChangeFile = (
@@ -46,21 +81,31 @@ export const SecondStep: React.FC<Props> = ({
     setValue(name, files);
   };
 
-  const handleAddMember = (data: Family) => {
-    const members = getValues()?.data?.family.data;
-    if (members) {
-      setValue('data.family.data', [...members, data]);
-      setMembers([...members, data]);
-    }
+  const handleAddMember = useCallback(() => {
+    append(generateDefaultMember());
+  }, [append]);
+
+  const handleRemoveMember = (id: number) => {
+    const family = getValues('data.family.data');
+    remove(id);
+    fileNames.forEach(element => {
+      //@ts-ignore
+      if (family[id][element].length) {
+        //@ts-ignore
+        onRemoveFile(`${element}-${id}`, family[id][element][0]);
+      }
+
+    });
   };
 
-  const removeMember = (idx: number) => {
-    const members = getValues()?.data?.family.data;
+  const onRemoveFile = async (inputName: string, fileName: string) => {
+    if (requestId) {
+      try {
+        await API.removeFile({ inputName, fileName, requestId });
 
-    if (members) {
-      const newMemebers = members.filter((_, index) => index !== idx);
-      setValue('data.family.data', newMemebers);
-      setMembers(newMemebers);
+      } catch (e) {
+        console.log(e);
+      }
     }
   };
 
@@ -80,216 +125,325 @@ export const SecondStep: React.FC<Props> = ({
     });
   }, []);
 
+  console.log(getValues('data.family.data'), errors);
+
   return (
     <div className={css.root}>
-      <div className={css.row}>
-        <Controller
-          name="documents.avgIncomeBefore"
-          control={control}
-          render={({ field }) => (
-            <FileUploader
-              {...field}
-              label={
-                'Сума вашого середнього місячного доходу (в гривнях) до 22 лютого 2022'
-              }
-              onChange={onChangeFile}
-              inputName="avgIncomeBefore"
-            >
-              <ul>
-                Довідка про доходи:
-                <li>
-                  підтвердження розміру чистого доходу за місяць, що передує
-                  місяцю подання заяви на публічне запрошення;
-                </li>
-                <li>
-                  довідка з Пенсійного фонду України або іншої компетентної
-                  державної установи України про надходження пенсійних платежів
-                  Заявнику або членам його родини у випадку, якщо вони є
-                  пенсіонерами або особами, що отримують пенсійне забезпечення
-                  від держави;
-                </li>
-                <li>
-                  документ про те, що Заявник має статус безробітного та
-                  перебуває на обліку в національних центрах зайнятості.
-                </li>
-              </ul>
-            </FileUploader>
-          )}
-        />
-        {errors?.documents?.avgIncomeBefore && (
-          <ErrorMessage
-            message={String(errors?.documents?.avgIncomeBefore.message)}
-          />
-        )}
-      </div>
-      <hr />
-      <div className={css.row}>
-        <Controller
-          name="documents.avgIncomeAfter"
-          control={control}
-          render={({ field }) => (
-            <FileUploader
-              {...field}
-              label={
-                'Сума вашого середнього місячного доходу заявника (в гривнях) після 22 лютого 2022'
-              }
-              onChange={onChangeFile}
-              inputName="avgIncomeAfter"
-            >
-              <ul>
-                Довідка про доходи:
-                <li>
-                  підтвердження розміру чистого доходу за місяць, що передує
-                  місяцю подання заяви на публічне запрошення;
-                </li>
-                <li>
-                  довідка з Пенсійного фонду України або іншої компетентної
-                  державної установи України про надходження пенсійних платежів
-                  Заявнику або членам його родини у випадку, якщо вони є
-                  пенсіонерами або особами, що отримують пенсійне забезпечення
-                  від держави;
-                </li>
-                <li>
-                  документ про те, що Заявник має статус безробітного та
-                  перебуває на обліку в національних центрах зайнятості.
-                </li>
-              </ul>
-            </FileUploader>
-          )}
-        />
-        {errors?.documents?.avgIncomeAfter && (
-          <ErrorMessage
-            message={String(errors?.documents?.avgIncomeAfter.message)}
-          />
-        )}
-      </div>
-      <hr />
-      <h3 className={css.title}>
-        Члени домогосподарства, що будуть проживати разом з вами
-      </h3>
-      <div className={css.errors}>
-        {errors?.data?.family && (
-          <ErrorMessage message={String(errors?.data?.family.message)} />
-        )}
-      </div>
-      <table className={css.table}>
-        <thead>
-          <tr>
-            <th>№</th>
-            <th>ПІБ</th>
-            <th>Тип відносин із заявником</th>
-            <th>Вік</th>
-            <th>Соціальний стан</th>
-            <th>Середній місячний дохід до 22 лютого 2022</th>
-            <th>Середній місячний дохід після 22 лютого 2022</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {Boolean(members.length) ? (
-            members.map(
-              (
-                {
-                  pib,
-                  relationship,
-                  age,
-                  socialStatus,
-                  avgIncomeBefore,
-                  avgIncomeAfter,
-                },
-                idx
-              ) => (
-                <tr key={idx}>
-                  <td>{idx + 1}</td>
-                  <td>{pib}</td>
-                  <td>{relationship}</td>
-                  <td>{age}</td>
-                  <td>
-                    {socialStatus?.value
-                      ? socialStatus.value
-                      : socialStatus.key}
-                  </td>
-                  <td>{avgIncomeBefore}</td>
-                  <td>{avgIncomeAfter}</td>
-                  <td>
-                    <span onClick={() => removeMember(idx)}>+</span>
-                  </td>
-                </tr>
-              )
-            )
-          ) : (
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-      <div className={css.row}>
-        <FormGenerator onSubmitStep={handleAddMember} />
-      </div>
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
-        <hr />
+        <div className={css.title}><strong>Сума вашого середнього місячного доходу (в гривнях) до 22 лютого 2022</strong></div>
         <div className={css.row}>
           <Controller
-            name="documents.family"
+            name="data.avgIncomeBefore.value"
+            control={control}
+            defaultValue={values?.data.avgIncomeBefore.value}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Cума"
+                className={css.textField}
+                type='number'
+              />
+            )}
+          />
+          {errors?.data?.avgIncomeBefore?.value && (
+            <ErrorMessage
+              message={String(errors?.data?.avgIncomeBefore.value.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="documents.avgIncomeBefore"
             control={control}
             render={({ field }) => (
               <FileUploader
                 {...field}
-                label={
-                  'Інформація про членів домогосподарства, що будуть проживати разом із заявником (Додати за потреби)'
-                }
-                inputName="family"
                 onChange={onChangeFile}
+                inputName="avgIncomeBefore"
               >
-                <ol>
+                <ul>
                   Довідка про доходи:
                   <li>
-                    ксерокопію/скан посвідчення або довідки внутрішньо
-                    переміщеної особи членів сім’ї, які перебувають на обліку,
-                    або підтвердження від державних органів чи установ про
-                    взяття їх на облік як внутрішньо переміщених осіб;
-                  </li>
-                  <li>
-                    ксерокопія/скан посвідчення особи для всіх членів сім’ї
-                    віком від 16 років, тобто відскановане посвідчення особи,
-                    якщо це біометричне посвідчення особи;
-                  </li>
-                  <li>
-                    ксерокопія/скан свідоцтва про народження для осіб віком до
-                    16 років;
-                  </li>
-                  <li>фотокопія паспорту громадянина України;</li>
-                  <li>
-                    для працюючих членів домогосподарства довідка, засвідчена
-                    адміністративним органом або судом, що Заявник, тобто член
-                    сімейного господарства, отримує певні випадкові доходи;
+                    підтвердження розміру чистого доходу за місяць, що передує
+                    місяцю подання заяви на публічне запрошення;
                   </li>
                   <li>
                     довідка з Пенсійного фонду України або іншої компетентної
-                    державної установи України про надходження пенсійних
-                    платежів Заявнику або членам його родини у випадку, якщо
-                    вони є пенсіонерами або особами, що отримують пенсійне
-                    забезпечення від держави;
+                    державної установи України про надходження пенсійних платежів
+                    Заявнику або членам його родини у випадку, якщо вони є
+                    пенсіонерами або особами, що отримують пенсійне забезпечення
+                    від держави;
                   </li>
                   <li>
-                    документ про те, що Заявник та/або члени його сім’ї мають
-                    статус безробітного та перебувають на обліку в національних
-                    центрах зайнятості
+                    документ про те, що Заявник має статус безробітного та
+                    перебуває на обліку в національних центрах зайнятості.
                   </li>
-                </ol>
+                </ul>
               </FileUploader>
             )}
           />
-          {errors?.documents?.family && (
-            <ErrorMessage message={String(errors?.documents?.family.message)} />
+          {errors?.documents?.avgIncomeBefore && (
+            <ErrorMessage
+              message={String(errors?.documents?.avgIncomeBefore.message)}
+            />
           )}
         </div>
+        <hr />
+        <div className={css.title}><strong>Сума вашого середнього місячного доходу заявника (в гривнях) після 22 лютого 2022</strong></div>
+        <div className={css.row}>
+          <Controller
+            name="data.avgIncomeAfter.value"
+            control={control}
+            defaultValue={values?.data.avgIncomeAfter.value}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Cума"
+                className={css.textField}
+                type='number'
+              />
+            )}
+          />
+          {errors?.data?.avgIncomeAfter?.value && (
+            <ErrorMessage
+              message={String(errors?.data?.avgIncomeAfter.value.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="documents.avgIncomeAfter"
+            control={control}
+            render={({ field }) => (
+              <FileUploader
+                {...field}
+                onChange={onChangeFile}
+                inputName="avgIncomeAfter"
+              >
+                <ul>
+                  Довідка про доходи:
+                  <li>
+                    підтвердження розміру чистого доходу за місяць, що передує
+                    місяцю подання заяви на публічне запрошення;
+                  </li>
+                  <li>
+                    довідка з Пенсійного фонду України або іншої компетентної
+                    державної установи України про надходження пенсійних платежів
+                    Заявнику або членам його родини у випадку, якщо вони є
+                    пенсіонерами або особами, що отримують пенсійне забезпечення
+                    від держави;
+                  </li>
+                  <li>
+                    документ про те, що Заявник має статус безробітного та
+                    перебуває на обліку в національних центрах зайнятості.
+                  </li>
+                </ul>
+              </FileUploader>
+            )}
+          />
+          {errors?.documents?.avgIncomeAfter && (
+            <ErrorMessage
+              message={String(errors?.documents?.avgIncomeAfter.message)}
+            />
+          )}
+        </div>
+        <hr />
+        <h3 className={css.title}>
+          Члени домогосподарства, що будуть проживати разом з вами
+        </h3>
+        {fields.length && (
+          <div className={css.fieldWrapper}>
+            {fields.map((field, index) => {
+              const isFirst = index === 0;
+              return (
+                <div className={css.fieldBlock} key={field.id}>
+                  {!isFirst && (
+                    <div className={css.fieldHeader}>
+                      <span
+                        className={css.removeMember}
+                        onClick={() => handleRemoveMember(index)}
+                      >
+                        <BsTrash />
+                      </span>
+                    </div>
+                  )}
+                  <div className={css.row}>
+                    <TextField
+                      {...register(`data.family.data.${index}.pib`)}
+                      label="ПІБ"
+                      size="small"
+                      className={css.textField}
+                    />
+                    {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].pib && (
+                      <ErrorMessage message={String(errors?.data?.family?.data[index].pib.message)} />
+                    )}
+                  </div>
+                  <div className={css.row}>
+                    <Controller
+                      name={`data.family.data.${index}.pibDoc`}
+                      control={control}
+                      render={({ field }) => (
+                        <FileUploader
+                          {...field}
+                          onChange={onChangeFile}
+                          inputName={`pibDoc-${index}`}
+                        >
+                          <div className={css.text}>скан копію паспорту/id картку/фото паспорту</div>
+                        </FileUploader>
+                      )}
+                    />
+                    {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].pibDoc && (
+                      <ErrorMessage message={String(errors?.data?.family?.data[index].pibDoc.message)} />
+                    )}
+                  </div>
+                  <div className={css.fieldRow}>
+                    <div className={css.col}>
+                      <FormControl className={css.selectWrapper}>
+                        <InputLabel className={css.selectLabel}>
+                          Тип відносин
+                        </InputLabel>
+                        <Select
+                          {...register(`data.family.data.${index}.relationship`)}
+                          className={css.select}
+                          defaultValue={field.relationship}
+                          size="small"
+                          label="Тип відносин"
+                        >
+                          {getEnumOptions(Relationship).map(({ label, value }) => (
+                            <MenuItem value={value}>{label}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].relationship && (
+                        <ErrorMessage message={String(errors?.data?.family?.data[index].relationship.message)} />
+                      )}
+                    </div>
+                    <div className={css.col}>
+                      <TextField
+                        {...register(`data.family.data.${index}.age`)}
+                        label="Вік"
+                        size="small"
+                        type="number"
+                        className={css.textField}
+                      />
+                      {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].age && (
+                        <ErrorMessage message={String(errors?.data?.family?.data[index].age.message)} />
+                      )}
+                    </div>
+                  </div>
+                  <div className={css.row}>
+                    <TextField
+                      {...register(`data.family.data.${index}.avgIncomeBefore`)}
+                      defaultValue={field.avgIncomeBefore}
+                      label="Середній місячний дохід (в гривнях) до 22 лютого 2022"
+                      size="small"
+                      type="number"
+                      className={css.textField}
+                    />
+                    {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].avgIncomeBefore && (
+                      <ErrorMessage message={String(errors?.data?.family?.data[index].avgIncomeBefore.message)} />
+                    )}
+                    <div className={css.rowFile}>
+                      <Controller
+                        name={`data.family.data.${index}.avgIncomeBeforeDoc`}
+                        control={control}
+                        render={({ field }) => (
+                          <FileUploader
+                            {...field}
+                            onChange={onChangeFile}
+                            inputName={`avgIncomeBeforeDoc-${index}`}
+                          >
+                            <div className={css.text}>Довідка про доходи:</div>
+                          </FileUploader>
+                        )}
+                      />
+                      {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].pibDoc && (
+                        <ErrorMessage message={String(errors?.data?.family?.data[index].pibDoc.message)} />
+                      )}
+                    </div>
+                  </div>
+                  <div className={css.row}>
+                    <TextField
+                      {...register(`data.family.data.${index}.avgIncomeAfter`)}
+                      defaultValue={field.avgIncomeAfter}
+                      label="Середній місячний дохід (в гривнях) після 22 лютого 2022"
+                      size="small"
+                      type="number"
+                      className={css.textField}
+                    />
+                    {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].avgIncomeAfter && (
+                      <ErrorMessage message={String(errors?.data?.family?.data[index].avgIncomeAfter.message)} />
+                    )}
+                    <div className={css.rowFile}>
+                      <Controller
+                        name={`data.family.data.${index}.avgIncomeAfterDoc`}
+                        control={control}
+                        render={({ field }) => (
+                          <FileUploader
+                            {...field}
+                            onChange={onChangeFile}
+                            inputName={`avgIncomeAfterDoc-${index}`}
+                          >
+                            <div className={css.text}>Довідка про доходи:</div>
+                          </FileUploader>
+                        )}
+                      />
+                      {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].pibDoc && (
+                        <ErrorMessage message={String(errors?.data?.family?.data[index].pibDoc.message)} />
+                      )}
+                    </div>
+                  </div>
+                  <div className={css.fieldRow}>
+                    <div className={css.col}>
+                      <FormControl className={css.selectWrapper}>
+                        <InputLabel className={css.selectLabel}>
+                          Соціальний стан
+                        </InputLabel>
+                        <Select
+                          {...register(`data.family.data.${index}.socialStatus.key`)}
+                          className={css.select}
+                          label="Соціальний стан"
+                          size="small"
+                          defaultValue={field.socialStatus.key}
+                        >
+                          {getEnumOptions(SocialStatuses).map(({ label, value }) => (
+                            <MenuItem value={value}>{label}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index]?.socialStatus?.key && (
+                        <ErrorMessage message={String(errors?.data?.family?.data[index].socialStatus.key.message)} />
+                      )}
+                    </div>
+                    <div className={css.col}>
+                      {Boolean(items.data[index].socialStatus.key) && items.data[index].socialStatus.key === SocialStatuses.Other && (
+                        <>
+                          <TextField
+                            {...register(`data.family.data.${index}.socialStatus.value`)}
+                            label="Інше"
+                            size="small"
+                            className={css.textField}
+                          />
+                          {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index]?.socialStatus?.value && (
+                            <ErrorMessage message={String(errors?.data?.family?.data[index].socialStatus.value.message)} />
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <Button
+              variant="contained"
+              className={css.rowBtn}
+              size="small"
+              onClick={handleAddMember}
+            >
+              Додати
+            </Button>
+          </div>
+        )}
         <div className={cx(css.row, css.actions)}>
           <Button
             variant="outlined"

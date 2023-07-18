@@ -19,7 +19,7 @@ interface RadioInputProps {
   name: string;
   inputName?: string;
   title?: string;
-  value: any;
+  value?: any;
   options: RadioOption[];
   withOther?: string[];
   fieldValue?: string;

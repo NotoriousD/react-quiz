@@ -14,6 +14,12 @@ const AuthorizationPage = lazy(() =>
   }))
 );
 
+const HomePage = lazy(() =>
+  import('pages/HomePage').then((module) => ({
+    default: module.HomePage,
+  }))
+);
+
 const PrivacyPolicyPage = lazy(() =>
   import('pages/PrivacyPolicyPage').then((module) => ({
     default: module.PrivacyPolicyPage,
@@ -30,6 +36,10 @@ function App() {
   const router = createBrowserRouter([
     {
       path: '/',
+      element: <HomePage />,
+    },
+    {
+      path: '/auth',
       element: <AuthorizationPage />,
     },
     {

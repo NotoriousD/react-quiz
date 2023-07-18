@@ -1,0 +1,101 @@
+.root {
+
+}
+
+.container {
+    max-width: 650px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.video {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.videoText {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.itemImg {
+    max-width: 650px;
+    width: 100%;
+}
+
+.arrow {
+    border: 0;
+    background-color: transparent;
+    outline: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 15;
+    cursor: pointer;
+
+    img {
+        width: 40px;
+        height: 40px;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+    }
+}
+
+.arrowLeft {
+    left: 5px;
+}
+
+.arrowRight {
+    right: 5px;
+}
+
+.swiperContainer {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.text {
+    font-size: 16px;
+    margin-bottom: 14px;
+}
+
+.list {
+    strong {
+        margin-bottom: 14px;
+        display: block;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+}
+
+.btnWrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.notion {
+    font-style: italic;
+    font-size: 16px;
+    margin-bottom: 24px;
+}
+
+.link {
+    cursor: pointer;
+    font-weight: 600;
+    color: #1565c0;
+}

@@ -30,7 +30,7 @@ interface FileUploaderProps {
   idFileName?: string;
   idx?: number;
   onChange: (
-    name: keyof FormFieldsDocuments,
+    name: keyof FormFieldsDocuments | any,
     files: string | string[],
     fieldId?: string,
     idx?: number
@@ -100,8 +100,8 @@ export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
             const fileName = idFileName
               ? idFileName
               : fileList.includes(file.name)
-              ? `(1)${file.name}`
-              : file.name;
+                ? `(1)${file.name}`
+                : file.name;
             const fileReader = new FileReader();
             fileReader.onloadend = () => {
               const srcData = fileReader.result;
@@ -127,7 +127,7 @@ export const FileUploader: React.FC<PropsWithChildren<FileUploaderProps>> =
       const onRemove = async (name: string) => {
         if (requestId) {
           try {
-            const response = await API.removeFile({ name, requestId });
+            const response = await API.removeFile({ inputName, fileName: name, requestId });
 
             if (response?.message === 'File deleted') {
               getFiles();

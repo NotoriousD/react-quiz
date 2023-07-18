@@ -14,6 +14,7 @@ import {
   ViolenceMember,
 } from 'types/additional';
 import { Damage, EstateTerritory, Question } from 'types/capital';
+import { Relationship } from 'types/relationship';
 
 const estateTerritoryScores = {
   [EstateTerritory.Controlled]: 0,
@@ -98,6 +99,11 @@ export const computingSecondStepScores = (
 
 export const computingScores = (data: FormFieldValues) => {
   const {
+    pib,
+    age,
+    avgIncomeAfter: incomeAfter,
+    avgIncomeBefore: incomeBefore,
+    socialStatus,
     injured,
     pregnant,
     family,
@@ -132,12 +138,23 @@ export const computingScores = (data: FormFieldValues) => {
   let hugFamilyPositionScore = 0;
   let toBeEmployedMembersScore = 0;
   const isPregnant = pregnant.key === QuestionPregnant.Yes;
+  const newFamily: Family[] = [
+    ...family.data,
+    {
+      pib,
+      age,
+      avgIncomeAfter: incomeAfter.value,
+      avgIncomeBefore: incomeBefore.value,
+      relationship: Relationship.Father,
+      socialStatus: { key: socialStatus.key }
+    }
+  ]
   const {
     avgIncomeAfter,
     avgIncomeBefore,
     familyScore,
     childrenCount,
-  } = computingSecondStepScores(family.data, isPregnant);
+  } = computingSecondStepScores(newFamily, isPregnant);
 
   if (hasEstate.key === Question.Yes) {
     estateTerritoryScore =
@@ -202,8 +219,14 @@ export const computingScores = (data: FormFieldValues) => {
   const newData: FormFieldValues = {
     data: {
       ...data.data,
-      avgIncomeAfter,
-      avgIncomeBefore,
+      avgIncomeAfter: {
+        ...data.data.avgIncomeAfter,
+        score: avgIncomeAfter,
+      },
+      avgIncomeBefore: {
+        ...data.data.avgIncomeBefore,
+        score: avgIncomeBefore,
+      },
       family: {
         data: data.data.family.data,
         score: familyScore,

@@ -18,6 +18,7 @@ import { RadioInput } from 'components/RadioGroup';
 
 import { schema } from './validation';
 import css from './firstStep.module.scss';
+import { DateSelector } from 'components/DateSelector';
 
 interface Props {
   onSubmitStep: (data: FormFieldValues) => void;
@@ -77,6 +78,151 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
         <div className={css.row}>
           <Controller
+            name="data.pib"
+            control={control}
+            defaultValue={values?.data.pib}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Ваше прізвище, ім'я, по батькові (ПІБ)"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.data?.pib && (
+            <ErrorMessage
+              message={String(errors?.data?.pib.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.birthday"
+            control={control}
+            defaultValue={values?.data.birthday}
+            render={({ field }) => (
+              <DateSelector {...field} label="Дата народження" />
+            )}
+          />
+          {errors?.data?.birthday && (
+            <ErrorMessage
+              message={String(errors?.data?.birthday.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.age"
+            control={control}
+            defaultValue={values?.data.age}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Повних років"
+                className={css.textField}
+                type='number'
+              />
+            )}
+          />
+          {errors?.data?.age && (
+            <ErrorMessage
+              message={String(errors?.data?.age.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.idNumber"
+            control={control}
+            defaultValue={values?.data.idNumber}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Серія та номер паспорту/ID"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.data?.idNumber && (
+            <ErrorMessage
+              message={String(errors?.data?.idNumber.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.issue"
+            control={control}
+            defaultValue={values?.data.issue}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Виданий"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.data?.issue && (
+            <ErrorMessage
+              message={String(errors?.data?.issue.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.issueDate"
+            control={control}
+            defaultValue={values?.data.issueDate}
+            render={({ field }) => (
+              <DateSelector {...field} label="Дата видачі" />
+            )}
+          />
+          {errors?.data?.issueDate && (
+            <ErrorMessage
+              message={String(errors?.data?.issueDate.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.issueCity"
+            control={control}
+            defaultValue={values?.data.issueCity}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="В місті"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.data?.issueCity && (
+            <ErrorMessage
+              message={String(errors?.data?.issueCity.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.phone"
+            control={control}
+            defaultValue={values?.data.phone}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Контактний номер телефону"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.data?.phone && (
+            <ErrorMessage
+              message={String(errors?.data?.phone.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
             name="documents.pib"
             control={control}
             render={({ field }) => (
@@ -101,6 +247,25 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
         <hr />
         <div className={css.row}>
           <Controller
+            name="data.rnokpp"
+            control={control}
+            defaultValue={values?.data.rnokpp}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="РНОКПП (ІПН)"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.data?.rnokpp && (
+            <ErrorMessage
+              message={String(errors?.data?.rnokpp.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
             name="documents.rnokpp"
             control={control}
             render={({ field }) => (
@@ -116,6 +281,42 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
           />
           {errors?.documents?.rnokpp && (
             <ErrorMessage message={String(errors?.documents?.rnokpp.message)} />
+          )}
+        </div>
+        <hr />
+        <div className={css.title}><strong>Дата видачі та номер довідки про взяття на облік ВПО:</strong></div>
+        <div className={css.row}>
+          <Controller
+            name="data.vpoDate"
+            control={control}
+            defaultValue={values?.data.vpoDate}
+            render={({ field }) => (
+              <DateSelector {...field} label="Дата видачі" />
+            )}
+          />
+          {errors?.data?.vpoDate && (
+            <ErrorMessage
+              message={String(errors?.data?.vpoDate.message)}
+            />
+          )}
+        </div>
+        <div className={css.row}>
+          <Controller
+            name="data.vpoNumber"
+            control={control}
+            defaultValue={values?.data.vpoNumber}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Номер довідки"
+                className={css.textField}
+              />
+            )}
+          />
+          {errors?.data?.vpoNumber && (
+            <ErrorMessage
+              message={String(errors?.data?.vpoNumber.message)}
+            />
           )}
         </div>
         <hr />
