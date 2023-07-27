@@ -56,7 +56,7 @@ export const WebSocketProvider: React.FC<PropsWithChildren> = ({
         }
       });
 
-      socket.current.on('error', (result) => {});
+      socket.current.on('error', (result) => { });
 
       socket.current.on('disconnect', (result) => {
         if (isMobile) {
@@ -65,7 +65,7 @@ export const WebSocketProvider: React.FC<PropsWithChildren> = ({
       });
     }
 
-    return () => {};
+    return () => { };
   }, [otp, requestId, socket, connected, dispatch, isMobile]);
 
   return (

@@ -16,6 +16,7 @@ import { ErrorMessage } from 'components/ErrorMessage';
 import { Loader } from 'components/Loader';
 
 import css from './fiveStep.module.scss';
+import { Modal } from 'components/Modal';
 
 interface Props {
   onSubmitStep: (data: FormFieldValues, scores: number) => void;
@@ -131,19 +132,19 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
         </div>
       )}
       {isSubmitted && (
-        <div className={css.submitted}>
-          Дякуємо за заповнення, з вами звʼяжуться як най швидше
+        <Modal>
+          <div className={css.modalTitle}>
+            Дякуємо за заповнення, з вами звʼяжуться як най швидше
+          </div>
           <Button
             variant="contained"
             className={css.btn}
-            size="small"
             type="button"
             onClick={handleGoHomePage}
-            disabled={isSumbitting}
           >
             На головну
           </Button>
-        </div>
+        </Modal>
       )}
     </div>
   );

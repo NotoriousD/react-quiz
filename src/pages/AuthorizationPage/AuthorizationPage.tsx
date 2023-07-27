@@ -1,8 +1,7 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import QRCode from 'react-qr-code';
 import { useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
-import { useTimer } from 'react-timer-hook';
 
 import { useAppDispatch, useAppSelector } from 'store';
 import { selectAuthData } from 'store/auth/selectors';
@@ -12,8 +11,10 @@ import { AuthirizationStatuses } from 'types';
 import { useWindow } from 'hooks/useWindow';
 
 import { Loader } from 'components/Loader';
+import { Timer } from 'components/Timer';
 
 import css from './authorization.module.scss';
+import { Modal } from 'components/Modal';
 
 export const AuthorizationPage: React.FC = () => {
   const { status, deepLink } = useAppSelector(selectAuthData);
@@ -21,9 +22,7 @@ export const AuthorizationPage: React.FC = () => {
   const { isMobile } = useWindow();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const time = new Date();
-  time.setSeconds(time.getSeconds() + 179)
-  const { seconds, minutes, restart } = useTimer({ expiryTimestamp: time, })
+  const time = useRef<Date>(new Date());
 
   const handleOpenLink = useCallback(() => {
     setIsUrlUsed(true);
@@ -37,24 +36,56 @@ export const AuthorizationPage: React.FC = () => {
     if (isMobile && deepLink) {
       setIsUrlUsed(false);
     }
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 179)
-    restart(time)
+    const newTime = new Date();
+    newTime.setSeconds(newTime.getSeconds() + 179)
+    time.current = newTime;
   };
 
-  useEffect(() => {
-    if (status === AuthirizationStatuses.Done) {
-      navigate('/form/1');
-    }
-  }, [status, navigate]);
+  const handleGoToQuiz = () => {
+    navigate('/form/1');
+  }
 
   useEffect(() => {
     dispatch(authorization());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    time.current.setSeconds(time.current.getSeconds() + 179)
+  }, []);
+
+  console.log(status);
+
   return (
     <div className={css.root}>
+      {status === AuthirizationStatuses.Done && (
+        <Modal>
+          <div className={css.modalTitle}>
+            Дякуємо! Ми отримали копію довідки ВПО. Тепер потрібно заповнити анкету на участь
+          </div>
+          <Button
+            variant="contained"
+            className={css.btn}
+            type="button"
+            onClick={handleGoToQuiz}
+          >
+            Почати заповнення анкети
+          </Button>
+        </Modal>
+      )}
+      <Modal>
+        <div className={css.modalTitle}>
+          Дякуємо! Ми отримали копію довідки ВПО. Тепер потрібно заповнити анкету на участь
+        </div>
+        <Button
+          variant="contained"
+          className={css.btn}
+          type="button"
+          onClick={handleGoToQuiz}
+        >
+          Почати заповнення анкети
+        </Button>
+      </Modal>
       {deepLink && (
         <>
           {isMobile ? (
@@ -94,11 +125,13 @@ export const AuthorizationPage: React.FC = () => {
               <div className={css.qr}>
                 <QRCode value={deepLink} />
               </div>
-              <div className={css.timer}>
-                Термін дії QR-коду: <strong>{minutes} : {seconds}</strong>
-              </div>
+              <Timer time={time.current} />
               {status === AuthirizationStatuses.Initialized ||
-                (status === AuthirizationStatuses.Processing && <Loader />)}
+                (status === AuthirizationStatuses.Processing && (
+                  <div>
+                    <Loader />
+                  </div>
+                ))}
               <Button
                 variant="contained"
                 className={css.btn}
@@ -106,7 +139,7 @@ export const AuthorizationPage: React.FC = () => {
                 type="button"
                 onClick={handleGenerateNewLink}
               >
-                Сгенерувати новий QR code
+                Згенерувати новий QR code
               </Button>
             </div>
           )}
