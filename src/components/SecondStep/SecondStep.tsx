@@ -125,8 +125,6 @@ export const SecondStep: React.FC<Props> = ({
     });
   }, []);
 
-  console.log(getValues('data.family.data'), errors);
-
   return (
     <div className={css.root}>
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
@@ -305,8 +303,8 @@ export const SecondStep: React.FC<Props> = ({
                         <Select
                           {...register(`data.family.data.${index}.relationship`)}
                           className={css.select}
+                          size='small'
                           defaultValue={field.relationship}
-                          size="small"
                           label="Тип відносин"
                         >
                           {getEnumOptions(Relationship).map(({ label, value }) => (
@@ -403,7 +401,6 @@ export const SecondStep: React.FC<Props> = ({
                           {...register(`data.family.data.${index}.socialStatus.key`)}
                           className={css.select}
                           label="Соціальний стан"
-                          size="small"
                           defaultValue={field.socialStatus.key}
                         >
                           {getEnumOptions(SocialStatuses).map(({ label, value }) => (
@@ -440,7 +437,7 @@ export const SecondStep: React.FC<Props> = ({
               size="small"
               onClick={handleAddMember}
             >
-              Додати
+              Додати ще людину
             </Button>
           </div>
         )}

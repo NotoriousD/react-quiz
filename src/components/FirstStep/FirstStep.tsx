@@ -76,6 +76,7 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
   return (
     <div className={css.root}>
       <form onSubmit={handleSubmit(onSubmitStep)} className={css.form}>
+        <div className={css.title}><strong>Інформація про основного заявника Прізвище, ім'я, по батькові, Дата народження, Повних років, Паспорт/ID картка*:</strong></div>
         <div className={css.row}>
           <Controller
             name="data.pib"
@@ -228,9 +229,6 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
             render={({ field }) => (
               <FileUploader
                 {...field}
-                label={
-                  "Інформація про основного заявника Прізвище, ім'я, по батькові, Дата народження, Повних років, Паспорт/ID картка*:"
-                }
                 onChange={onChangeFile}
                 inputName="pib"
               >
@@ -369,7 +367,7 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Вулиця"
+                label="Поштова адреса"
                 size="small"
                 className={css.textField}
               />

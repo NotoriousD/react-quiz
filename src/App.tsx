@@ -26,6 +26,12 @@ const PrivacyPolicyPage = lazy(() =>
   }))
 );
 
+const PublicAnnouncementPage = lazy(() =>
+  import('pages/PublicAnnouncementPage').then((module) => ({
+    default: module.PublicAnnouncementPage,
+  }))
+);
+
 const ErrorPage = lazy(() =>
   import('pages/ErrorPage').then((module) => ({
     default: module.ErrorPage,
@@ -53,6 +59,10 @@ function App() {
     {
       path: '/privacy-policy',
       element: <PrivacyPolicyPage />,
+    },
+    {
+      path: '/public-announcement',
+      element: <PublicAnnouncementPage />
     },
     {
       path: '*',

@@ -6,6 +6,7 @@ import TextareaAutosize from '@mui/base/TextareaAutosize';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import cx from 'classnames';
+import { useNavigate } from 'react-router';
 
 import { FormFieldValues } from 'types';
 import { useAppSelector } from 'store';
@@ -36,6 +37,7 @@ const schema = yup.object().shape({
 
 export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
   const timer = useRef<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
   const { isSumbitting, isSubmitted } = useAppSelector(selectAuthData);
   const {
     handleSubmit,
@@ -47,13 +49,13 @@ export const FiveStep: React.FC<Props> = ({ onSubmitStep, onBack, values }) => {
   });
 
   const handleGoHomePage = () => {
-    window.location.href = 'https://help-ukraine.org.ua/';
+    navigate('/')
   };
 
   useEffect(() => {
     if (isSubmitted && !timer.current) {
       timer.current = setTimeout(() => {
-        window.location.href = 'https://help-ukraine.org.ua/';
+        navigate('/')
       }, 3000);
     }
 

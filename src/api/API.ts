@@ -102,8 +102,6 @@ export const API = {
         }
       );
 
-      console.log(response);
-
       if (response.data) {
         return response.data;
       }

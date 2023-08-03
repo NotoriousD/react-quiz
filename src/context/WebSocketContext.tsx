@@ -29,9 +29,9 @@ export const WebSocketProvider: React.FC<PropsWithChildren> = ({
 
   useEffect(() => {
     if (otp && requestId && !connected) {
-      socket.current = io('https://test-api-3bob.onrender.com', {
+      socket.current = io('https://api.help-ukraine.org.ua', {
         path: '/api/request/status/socket/',
-        transports: ['websocket'],
+        transports: ['polling'],
         rememberUpgrade: true,
       });
       socket.current.emit(

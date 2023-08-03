@@ -54,8 +54,6 @@ export const AuthorizationPage: React.FC = () => {
     time.current.setSeconds(time.current.getSeconds() + 179)
   }, []);
 
-  console.log(status);
-
   return (
     <div className={css.root}>
       {status === AuthirizationStatuses.Done && (
@@ -73,19 +71,6 @@ export const AuthorizationPage: React.FC = () => {
           </Button>
         </Modal>
       )}
-      <Modal>
-        <div className={css.modalTitle}>
-          Дякуємо! Ми отримали копію довідки ВПО. Тепер потрібно заповнити анкету на участь
-        </div>
-        <Button
-          variant="contained"
-          className={css.btn}
-          type="button"
-          onClick={handleGoToQuiz}
-        >
-          Почати заповнення анкети
-        </Button>
-      </Modal>
       {deepLink && (
         <>
           {isMobile ? (

@@ -33,7 +33,6 @@ export const QuizPage: React.FC = () => {
     data: Partial<FormFieldValues>,
     scores: number = 0
   ) => {
-    console.log(data);
     Object.entries(data).forEach(([key, value]) => {
       setValue(key as keyof FormFieldValues, value);
     });
