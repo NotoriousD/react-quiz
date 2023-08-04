@@ -76,7 +76,7 @@ export const AuthorizationPage: React.FC = () => {
           {isMobile ? (
             <div className={css.container}>
               <div className={css.title}>
-                Пройдіть верефікацію через застосунок Дія
+                Пройдіть верефікацію через застосунок Дія та поверніться до анкети
               </div>
               <div className={css.btnWrapper}>
                 <Button

@@ -322,6 +322,7 @@ export const SecondStep: React.FC<Props> = ({
                         label="Вік"
                         size="small"
                         type="number"
+                        InputProps={{ inputProps: { min: 0 } }}
                         className={css.textField}
                       />
                       {Array.isArray(errors?.data?.family?.data) && errors?.data?.family?.data[index].age && (

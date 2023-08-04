@@ -16,7 +16,7 @@ export const schema = yup.object().shape({
           pib: yup.string().required("Поле є обов'язковим"),
           pibDoc: yup.array().min(1, "Поле є обов'язковим"),
           relationship: yup.string().required("Поле є обов'язковим"),
-          age: yup.number().moreThan(0, "Повинно бути більше ніж 0").lessThan(110, "Повинно бути меньше ніж 110"),
+          age: yup.number().transform((value) => (isNaN(value) || value === null || value === undefined) ? 0 : value).moreThan(0, "Повинно бути більше ніж 0").lessThan(110, "Повинно бути меньше ніж 110"),
           socialStatus: yup.object().shape({
             key: yup.string().required("Поле є обов'язковим"),
             value: yup.string().when('key', ([key]) => {

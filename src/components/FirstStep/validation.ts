@@ -5,7 +5,7 @@ export const schema = yup.object().shape({
   data: yup.object().shape({
     pib: yup.string().required("Поле є обов'язковим"),
     birthday: yup.string().required("Поле є обов'язковим"),
-    age: yup.number().min(1, "Введіть коректне значення").max(100, "Введіть коректне значення"),
+    age: yup.number().transform((value) => (isNaN(value) || value === null || value === undefined) ? 0 : value).min(1, "Введіть коректне значення").max(100, "Введіть коректне значення"),
     idNumber: yup.string().required("Поле є обов'язковим"),
     issue: yup.string().required("Поле є обов'язковим"),
     issueDate: yup.string().required("Поле є обов'язковим"),
