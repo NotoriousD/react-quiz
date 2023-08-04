@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from 'store';
 import { selectAuthData } from 'store/auth/selectors';
 import { authorization } from 'store/auth/thunk';
 import { AuthirizationStatuses } from 'types';
+import { getMobileOperatingSystemAndRedirect } from 'helpers/detection';
 
 import { useWindow } from 'hooks/useWindow';
 
@@ -27,7 +28,7 @@ export const AuthorizationPage: React.FC = () => {
   const handleOpenLink = useCallback(() => {
     setIsUrlUsed(true);
     if (isMobile && deepLink) {
-      window.open(`diia.app://${deepLink.replace('https://', '')}`, '_system');
+      getMobileOperatingSystemAndRedirect(deepLink)
     }
   }, [isMobile, deepLink]);
 
