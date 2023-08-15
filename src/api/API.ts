@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 
-import { FormFields } from 'types';
+import { FormFields, DocumentsResponse } from 'types';
 import { httpClient } from './httpClient';
 
 export interface AuthData {
@@ -19,6 +19,17 @@ export const API = {
   async fetchDeepLink() {
     try {
       const response = await httpClient.get<AuthData>('/deeplink');
+
+      return response.data;
+    } catch (e) {
+      //@ts-ignore
+      throw Error(e?.response?.data?.message);
+    }
+  },
+
+  async fetchRequestId() {
+    try {
+      const response = await httpClient.get<{ requestId: string }>('/initialize');
 
       return response.data;
     } catch (e) {
@@ -74,6 +85,21 @@ export const API = {
     }
   },
 
+  async getQuizFiles({ requestId }: { requestId: string }) {
+    try {
+      const response = await httpClient.get<DocumentsResponse>(
+        `/questionnaire/image/${requestId}`
+      );
+
+      if (response.data) {
+        return response.data;
+      }
+    } catch (e) {
+      //@ts-ignore
+      throw Error(e?.response?.data?.message);
+    }
+  },
+
   async removeFile({ inputName, fileName, requestId }: { inputName: string; fileName: string; requestId: string }) {
     try {
       const response = await httpClient.delete(
@@ -98,6 +124,7 @@ export const API = {
         `/questionnaire/form/${requestId}`,
         {
           encodeForm: Buffer.from(JSON.stringify(data.data)).toString('base64'),
+          fullName: data.data.pib,
           score: data.score,
         }
       );
@@ -107,6 +134,53 @@ export const API = {
       }
     } catch (e) {
       //@ts-ignore
+      console.log(e);
+    }
+  },
+
+  async sendQuestionnarieWithoutDiia(
+    data: { data: FormFields; score: number },
+    requestId: string
+  ) {
+    try {
+      const response = await httpClient.post(
+        `/questionnaire/form/save/${requestId}`,
+        {
+          encodeForm: Buffer.from(JSON.stringify(data.data)).toString('base64'),
+          fullName: data.data.pib,
+          score: data.score,
+        }
+      );
+
+      if (response.data) {
+        return response.data;
+      }
+    } catch (e) {
+      //@ts-ignore
+      console.log(e);
+    }
+  },
+
+  async getQuestionnarieList() {
+    try {
+      const response = await httpClient.post('/questionnaire/list');
+
+      if(response.data) {
+        return response.data;
+      }
+    } catch(e) {
+      console.log(e);
+    }
+  },
+
+  async getQuestionnarie({ requestId }: { requestId: string }) {
+    try {
+      const response = await httpClient.get(`/questionnaire/form/${requestId}`);
+
+      if(response.data) {
+        return response.data;
+      }
+    } catch(e) {
       console.log(e);
     }
   },

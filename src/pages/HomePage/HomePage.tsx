@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from "swiper";
 import cx from 'classnames';
@@ -23,27 +23,41 @@ import item15 from 'assets/item15.jpg';
 import arrowLeft from 'assets/left.png';
 import arrowRight from 'assets/right.png';
 
+import { useAppDispatch } from "store";
+import { authorizationWithoutDiia } from "store/auth/thunk";
+
 import 'swiper/css';
 
 import css from './homePage.module.scss';
 
-export const HomePage: React.FC = () => {
+interface Props {
+    withDiia: boolean;
+}
+
+export const HomePage: React.FC<Props> = ({ withDiia }) => {
     const navigate = useNavigate();
+    const dispatch = useAppDispatch()
 
     const handleGoToAuth = () => {
-        navigate('/auth');
+        navigate(withDiia ? '/auth' : '/form/1');
     };
 
     const handleRedirect = () => {
         navigate('/public-announcement')
     }
 
+    useEffect(() => {
+        if (!withDiia) {
+            dispatch(authorizationWithoutDiia());
+        }
+    }, [withDiia, dispatch]);
+
     return (
         <div className={css.root}>
             <div className={css.container}>
                 <div className={css.logo}><HelpLogoIcon className={css.logoIcon} /></div>
                 <div className={css.video}>
-                    <iframe width="650" height="370" src="https://www.youtube.com/embed/PHHDF40_LoM" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                    <iframe width="650" height="370" src="https://www.youtube.com/embed/rqtlCWzfXDk" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
                 </div>
                 <div className={css.videoText}>
                     Ми шукаємо 13 сімей, які втратили свою домівку та стали вимушеними переселенцями  внаслідок війни в Україні, аби забезпечити їх новою роботою та житлом.
@@ -95,9 +109,20 @@ export const HomePage: React.FC = () => {
                     <li>ви та члени вашої сім'ї не володіють нерухомістю в Україні, за допомогою якої ви можете безпечно задовольнити свої житлові потреби;</li>
                     <li>ви та члени вашої сім'ї не є бенефіціарами іншої програми із забезпечення житлом, за допомогою якої ви могли б вирішити або вирішили свої житлові потреби;</li>
                     <li>ви та члени вашої сім'ї не мають достатнього рівня доходів, за допомогою яких могли б вирішити свої житлові потреби.</li>
+                    <li>Мати одну з перелічених кваліфікацій: <strong>вчитель англійської мови <br />
+                        сімейний лікар <br />
+                        лікар-педіатр <br />
+                        нотаріус <br />
+                        програміст <br />
+                        бухгалтер <br />
+                        тренер <br />
+                        механізатор <br />
+                        електрик <br />
+                        юрист <br />
+                        хореограф </strong></li>
                 </ul>
                 <div className={cx(css.text, css.center)}>
-                    <strong>Період прийому заявок від бенефіціарів на участь у конкурсі: з 03.08.2023 по 03.09.2023</strong>
+                    <strong>Період прийому заявок від бенефіціарів на участь у конкурсі: з 07.07.2023 по 07.09.2023</strong>
                 </div>
                 <div className={cx(css.text, css.center)}>
                     <strong>Для участі у проєкті потрібно надати копію довідки ВПО через застосунок Дія та заповнити анкету.</strong>
@@ -112,12 +137,11 @@ export const HomePage: React.FC = () => {
                         Взяти участь
                     </Button>
                 </div>
-                <div className={css.notion}>Увага, ви можете заповнити анкету тільки один раз. Тому, зазделегідь підготуйте всі необхідні  документи.</div>
                 <div className={css.text}>
                     Ознайомитись детальними умовами участі можна по посиланню <span className={css.link} onClick={handleRedirect}>Умови участі</span>
                 </div>
                 <div className={css.text}>
-                    Проєкт реалізований Благодійною організацією «Благодійним фондом <strong>«Район номер 1»</strong> та за фінансової підтримки німецького міжнародного фонду <strong>Help – Hilfe zur Selbsthilfe</strong> в Україні.
+                    Проєкт реалізований Благодійною організацією «Благодійним фондом <strong>«Район номер 1»</strong> та за фінансової підтримки міжнародної гуманітарної організації <strong>Help – Hilfe zur Selbsthilfe</strong> в Україні.
                 </div>
             </div>
         </div>

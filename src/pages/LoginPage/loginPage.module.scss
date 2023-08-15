@@ -1,0 +1,29 @@
+.root {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form {
+    display: grid;
+    grid-gap: 20px;
+    max-width: 500px;
+    width: 100%;
+    padding: 0 15px;
+}
+
+.btn {
+    width: 100%;
+}
+
+.textField {
+    width: 100%;
+}
+
+.title {
+    font-size: 2rem;
+    line-height: 1.4375em;
+    letter-spacing: 0.00938em;
+    font-weight: 600;
+    text-align: center;
+}

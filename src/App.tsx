@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import { Loader } from 'components/Loader';
 import { PrivateRoute } from 'components/PrivateRoute';
+import { PrivatAdminRoute } from 'components/PrivatAdminRoute';
 
 const QuizPage = lazy(() =>
   import('pages/QuizPage').then((module) => ({ default: module.QuizPage }))
@@ -17,6 +18,30 @@ const AuthorizationPage = lazy(() =>
 const HomePage = lazy(() =>
   import('pages/HomePage').then((module) => ({
     default: module.HomePage,
+  }))
+);
+
+const QuizListPage = lazy(() =>
+  import('pages/QuizListPage').then((module) => ({
+    default: module.QuizListPage,
+  }))
+);
+
+const QuestionnariePage = lazy(() =>
+  import('pages/QuestionnariePage').then((module) => ({
+    default: module.QuestionnariePage,
+  }))
+);
+
+const AdminPage = lazy(() =>
+  import('pages/AdminPage').then((module) => ({
+    default: module.AdminPage,
+  }))
+);
+
+const LoginPage = lazy(() =>
+  import('pages/LoginPage').then((module) => ({
+    default: module.LoginPage,
   }))
 );
 
@@ -38,11 +63,13 @@ const ErrorPage = lazy(() =>
   }))
 );
 
+const FORM_WITH_DIIA = true;
+
 function App() {
   const router = createBrowserRouter([
     {
       path: '/',
-      element: <HomePage />,
+      element: <HomePage withDiia={FORM_WITH_DIIA} />,
     },
     {
       path: '/auth',
@@ -51,10 +78,29 @@ function App() {
     {
       path: '/form/:step',
       element: (
-        <PrivateRoute>
-          <QuizPage />
+        <PrivateRoute withDiia={FORM_WITH_DIIA}>
+          <QuizPage withDiia={FORM_WITH_DIIA} />
         </PrivateRoute>
       ),
+    },
+    {
+      path: '/admin',
+      element: <AdminPage />,
+      children: [
+        {
+          path: 'login',
+          index: true,
+          element: <LoginPage />,
+        },
+        {
+          path: 'list',
+          element: <PrivatAdminRoute><QuizListPage /></PrivatAdminRoute>,
+        },
+        {
+          path: 'list/:id',
+          element: <PrivatAdminRoute><QuestionnariePage /></PrivatAdminRoute>
+        }
+      ]
     },
     {
       path: '/privacy-policy',

@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 import {
   FormFieldValues,
@@ -15,17 +16,53 @@ import { SocialStatuses } from 'types/socialStatus';
 import { ErrorMessage } from 'components/ErrorMessage';
 import { FileUploader } from 'components/FileUploader';
 import { RadioInput } from 'components/RadioGroup';
-
-import { schema } from './validation';
-import css from './firstStep.module.scss';
 import { DateSelector } from 'components/DateSelector';
+
+import css from './firstStep.module.scss';
 
 interface Props {
   onSubmitStep: (data: FormFieldValues) => void;
   values: FormFieldValues;
+  withDiia: boolean;
 }
 
-export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
+export const FirstStep: React.FC<Props> = ({ onSubmitStep, values, withDiia }) => {
+
+  const schema = yup.object().shape({
+    data: yup.object().shape({
+      pib: yup.string().required("Поле є обов'язковим"),
+      birthday: yup.string().required("Поле є обов'язковим"),
+      age: yup.number().transform((value) => (isNaN(value) || value === null || value === undefined) ? 0 : value).min(1, "Введіть коректне значення").max(100, "Введіть коректне значення"),
+      idNumber: yup.string().required("Поле є обов'язковим"),
+      issue: yup.string().required("Поле є обов'язковим"),
+      issueDate: yup.string().required("Поле є обов'язковим"),
+      issueCity: yup.string().required("Поле є обов'язковим"),
+      phone: yup.string().required("Поле є обов'язковим").matches(/^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/, 'Ви ввели невалідний номер телефону'),
+      rnokpp: yup.string().required("Поле є обов'язковим"),
+      vpoNumber: yup.string().required("Поле є обов'язковим"),
+      vpoDate: yup.string().required("Поле є обов'язковим"),
+      addressSettlement: yup.string().required("Поле є обов'язковим"),
+      addressStreet: yup.string().required("Поле є обов'язковим"),
+      addressBuilding: yup.string().required("Поле є обов'язковим"),
+      addressFlat: yup.string().required("Поле є обов'язковим"),
+      socialStatus: yup.object().shape({
+        key: yup.string().required("Поле є обов'язковим"),
+        value: yup.string().when('key', ([key]) => {
+          return key === SocialStatuses.Other
+            ? yup.string().required("Поле є обов'язковим")
+            : yup.string();
+        }),
+      }),
+    }),
+    documents: yup.object().shape({
+      vpo: yup.array().when(() => {
+        return !withDiia ? yup.array().min(1, "Поле є обов'язковим") : yup.array();
+      }),
+      pib: yup.array().min(1, "Поле є обов'язковим"),
+      rnokpp: yup.array().min(1, "Поле є обов'язковим"),
+    }),
+  });
+
   const {
     handleSubmit,
     control,
@@ -211,7 +248,7 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Контактний номер телефону"
+                label="Контактний номер телефону в форматі (380ХХХХХХХХХ)"
                 className={css.textField}
               />
             )}
@@ -317,6 +354,28 @@ export const FirstStep: React.FC<Props> = ({ onSubmitStep, values }) => {
             />
           )}
         </div>
+        {!withDiia && (
+          <div className={css.row}>
+            <Controller
+              name="documents.vpo"
+              control={control}
+              render={({ field }) => (
+                <FileUploader
+                  {...field}
+                  onChange={onChangeFile}
+                  inputName="vpo"
+                >
+                  <ol>
+                    <li>скан копію довідки ВПО</li>
+                  </ol>
+                </FileUploader>
+              )}
+            />
+            {errors?.documents?.vpo && (
+              <ErrorMessage message={String(errors?.documents?.vpo.message)} />
+            )}
+          </div>
+        )}
         <hr />
         <div className={css.title}>Актуальна адреса проживання</div>
         <div className={css.row}>

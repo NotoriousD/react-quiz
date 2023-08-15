@@ -4,11 +4,19 @@ import { Navigate } from 'react-router-dom';
 import { selectAuthData } from 'store/auth/selectors';
 import { useAppSelector } from 'store';
 
-export const PrivateRoute: React.FC<PropsWithChildren> = ({ children }) => {
-  const { isAuth } = useAppSelector(selectAuthData);
+interface Props {
+  withDiia: boolean;
+}
 
-  if (!isAuth) {
+export const PrivateRoute: React.FC<PropsWithChildren<Props>> = ({ children, withDiia }) => {
+  const { isAuth, requestId } = useAppSelector(selectAuthData);
+
+  if (!isAuth && withDiia) {
     return <Navigate to={'/'} />;
+  }
+
+  if (!withDiia && !requestId) {
+    return <Navigate to={'/'} />
   }
 
   return <div>{children}</div>;

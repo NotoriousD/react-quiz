@@ -6,6 +6,7 @@ import {
   setIsSubmitted,
   setIsSubmitting,
   setStatus,
+  setRequestId
 } from './slice';
 import { AuthirizationStatuses, FormFields } from 'types';
 
@@ -13,6 +14,13 @@ export const authorization = (): AppThunk => async (dispatch: AppDispatch) => {
   const response = await API.fetchDeepLink();
   if (response) {
     dispatch(setAuthData(response));
+  }
+};
+
+export const authorizationWithoutDiia = (): AppThunk => async (dispatch: AppDispatch) => {
+  const response = await API.fetchRequestId();
+  if (response) {
+    dispatch(setRequestId(response.requestId));
   }
 };
 

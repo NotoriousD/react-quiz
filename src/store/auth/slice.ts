@@ -39,6 +39,9 @@ const authSlice = createSlice({
     setIsAuth: (state) => {
       state.isAuth = true;
     },
+    setRequestId: (state, action: PayloadAction<string>) => {
+      state.requestId = action.payload;
+    },
     setStatus: (state, action: PayloadAction<AuthirizationStatuses>) => {
       state.status = action.payload;
     },
@@ -54,6 +57,7 @@ const authSlice = createSlice({
 export const {
   setAuthData,
   setIsAuth,
+  setRequestId,
   setStatus,
   setIsSubmitting,
   setIsSubmitted,

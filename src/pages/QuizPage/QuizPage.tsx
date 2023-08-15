@@ -19,12 +19,22 @@ import fadeTransition from 'styles/fade.module.scss';
 import { submitQuestionnarie } from 'store/auth/thunk';
 import { selectAuthData } from 'store/auth/selectors';
 
-export const QuizPage: React.FC = () => {
+interface Props {
+  withDiia: boolean;
+}
+
+export const QuizPage: React.FC<Props> = ({ withDiia }) => {
   const [totalScore, setTotalScore] = useState<number>(0);
   const dispatch = useAppDispatch();
   const { requestId } = useAppSelector(selectAuthData);
   const { getValues, setValue } = useForm<FormFieldValues>({
-    defaultValues: initialValues,
+    defaultValues: {
+      data: initialValues.data,
+      documents: withDiia ? initialValues.documents : {
+        vpo: [],
+        ...initialValues.documents,
+      }
+    },
   });
 
   const { step: currentStep, goNextStep, goPrevStep } = useStepper();
@@ -62,7 +72,7 @@ export const QuizPage: React.FC = () => {
             timeout={200}
             classNames={fadeTransition}
           >
-            <FirstStep values={getValues()} onSubmitStep={handleChangeStep} />
+            <FirstStep values={getValues()} withDiia={withDiia} onSubmitStep={handleChangeStep} />
           </CSSTransition>
         );
       case 2:
